@@ -1,5 +1,6 @@
 package com.talentmatch.mapper;
 
+import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -19,6 +20,7 @@ import com.talentmatch.model.enums.EstadoVacante;
 @Mapper(componentModel = "spring", uses = {ReclutadorMapper.class}, 
         imports = {EstadoVacante.class}, 
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@DecoratedWith(VacanteMapperDecorator.class)
 public interface VacanteMapper {
 
     /**
@@ -51,6 +53,7 @@ public interface VacanteMapper {
     @Mapping(target = "beneficios", source = "request.beneficios")
     @Mapping(target = "fechaPublicacion", source = "request.fechaPublicacion")
     @Mapping(target = "fechaCierre", source = "request.fechaCierre")
+    @Mapping(target = "requierePrueba", constant = "false")
     Vacante toVacante(CreacionVacanteRequest request, Reclutador reclutador);
 
     /**
@@ -77,6 +80,7 @@ public interface VacanteMapper {
      */
     @Mapping(target = "reclutador", source = "reclutador")
     @Mapping(target = "totalPostulaciones", expression = "java(vacante.getPostulaciones().size())")
+    @Mapping(target = "requierePrueba", expression = "java(vacante.getRequierePrueba() != null ? vacante.getRequierePrueba() : Boolean.FALSE)")
     VacanteDetalleResponse toVacanteDetalleResponse(Vacante vacante);
 
     /**
@@ -90,5 +94,7 @@ public interface VacanteMapper {
     @Mapping(target = "totalPostulaciones", expression = "java(vacante.getPostulaciones().size())")
     @Mapping(target = "compatibilidad", ignore = true)
     @Mapping(target = "salario", expression = "java(vacante.getMostrarSalario() ? java.math.BigDecimal.valueOf(vacante.getSalarioMinimo()) : null)")
+    @Mapping(target = "habilidadesRequeridas", source = "habilidadesRequeridas")
+    @Mapping(target = "fechaPublicacion", source = "fechaPublicacion")
     VacanteResumenResponse toVacanteResumenResponse(Vacante vacante);
 }

@@ -15,7 +15,6 @@ export const vacanteService = {
       }
       
       console.log('Intentando crear vacante con reclutadorId:', reclutadorId);
-      console.log('Token de autenticación presente:', !!token);
       
       // Clonar el objeto para no modificar el original
       const datosProcesados = { ...datosVacante };
@@ -33,18 +32,34 @@ export const vacanteService = {
         datosProcesados.experienciaMinima = Number(datosProcesados.experienciaMinima) || 0;
       }
       
+      // Asegurar que experienciaRequerida esté presente
+      if (!datosProcesados.experienciaRequerida && datosProcesados.experienciaMinima !== undefined) {
+        datosProcesados.experienciaRequerida = `${datosProcesados.experienciaMinima} años`;
+      }
+      
       // Asegurar que las fechas estén en formato YYYY-MM-DD para LocalDate en el backend
       if (datosProcesados.fechaPublicacion) {
         // Si la fecha tiene formato datetime, extraer solo la parte de fecha
         if (typeof datosProcesados.fechaPublicacion === 'string') {
           datosProcesados.fechaPublicacion = datosProcesados.fechaPublicacion.split('T')[0];
         }
+      } else {
+        // Si no hay fecha de publicación, usar la fecha actual
+        datosProcesados.fechaPublicacion = new Date().toISOString().split('T')[0];
       }
       
       if (datosProcesados.fechaCierre) {
         // Si la fecha tiene formato datetime, extraer solo la parte de fecha
         if (typeof datosProcesados.fechaCierre === 'string') {
           datosProcesados.fechaCierre = datosProcesados.fechaCierre.split('T')[0];
+        }
+        
+        // Verificar que la fecha de cierre sea posterior a la de publicación
+        const fechaPublicacion = new Date(datosProcesados.fechaPublicacion);
+        const fechaCierre = new Date(datosProcesados.fechaCierre);
+        
+        if (fechaCierre <= fechaPublicacion) {
+          throw new Error("La fecha de cierre debe ser posterior a la fecha de publicación");
         }
       }
       
@@ -57,25 +72,67 @@ export const vacanteService = {
         datosProcesados.destacada = Boolean(datosProcesados.destacada);
       }
       
+      // Asegurar que las cadenas de texto no sean undefined
+      Object.keys(datosProcesados).forEach(key => {
+        const value = datosProcesados[key];
+        if (value === undefined && typeof datosVacante[key] === 'string') {
+          datosProcesados[key] = "";
+        }
+      });
+      
       console.log('Datos procesados a enviar:', JSON.stringify(datosProcesados, null, 2));
       
-      const response = await fetch(`${API_URL}/vacantes?reclutadorId=${reclutadorId}`, {
+      // URL de la petición
+      const url = `${API_URL}/vacantes?reclutadorId=${reclutadorId}`;
+      
+      const requestOptions = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(datosProcesados)
-      });
+      };
+      
+      const response = await fetch(url, requestOptions);
       
       // Verificar si la respuesta fue exitosa
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error al crear vacante:', errorData);
-        throw new Error(errorData.mensaje || 'Error al crear la vacante');
+        let errorMessage = 'Error al crear la vacante';
+        
+        // Verificar si hay cuerpo en la respuesta
+        const contentType = response.headers.get('content-type');
+        
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            
+            // Extraer el mensaje de error del objeto de respuesta
+            if (errorData.mensaje) {
+              errorMessage = errorData.mensaje;
+            } else if (errorData.message) {
+              errorMessage = errorData.message;
+            } else if (typeof errorData === 'string') {
+              errorMessage = errorData;
+            } else if (errorData.errors && errorData.errors.length > 0) {
+              // En caso de errores de validación
+              errorMessage = errorData.errors.map((err: any) => err.defaultMessage || err.message).join(", ");
+            }
+          } else {
+            // Si no es JSON, obtener el texto de la respuesta
+            const errorText = await response.text();
+            errorMessage = errorText || errorMessage;
+          }
+        } catch (parseError) {
+          console.error('Error al parsear la respuesta de error:', parseError);
+          errorMessage = `Error al procesar la respuesta del servidor: ${response.status} ${response.statusText}`;
+        }
+        
+        throw new Error(errorMessage);
       }
       
-      return await response.json();
+      const responseData = await response.json();
+      return responseData;
     } catch (error) {
       console.error('Error en servicio crearVacante:', error);
       throw error;
@@ -174,33 +231,66 @@ export const vacanteService = {
     try {
       const token = authService.getToken();
       
-      // Formatear fechas para el backend (LocalDateTime requiere formato ISO completo)
-      const datosProcesados = {
-        ...datosVacante
-      };
+      // Verificar que el token exista
+      if (!token) {
+        console.error('Error: No se encontró token de autenticación');
+        throw new Error('No se encontró token de autenticación. Por favor, inicie sesión nuevamente.');
+      }
+      
+      // Clonar el objeto para no modificar el original
+      const datosProcesados = { ...datosVacante };
       
       // Asegurar que los valores numéricos sean números y no strings
-      if (typeof datosProcesados.salarioMinimo === 'string') {
+      if (datosProcesados.salarioMinimo !== undefined) {
         datosProcesados.salarioMinimo = Number(datosProcesados.salarioMinimo) || 0;
       }
       
-      if (typeof datosProcesados.salarioMaximo === 'string') {
+      if (datosProcesados.salarioMaximo !== undefined) {
         datosProcesados.salarioMaximo = Number(datosProcesados.salarioMaximo) || 0;
       }
       
-      if (typeof datosProcesados.experienciaMinima === 'string') {
+      if (datosProcesados.experienciaMinima !== undefined) {
         datosProcesados.experienciaMinima = Number(datosProcesados.experienciaMinima) || 0;
       }
       
-      // Convertir fechas de formato YYYY-MM-DD a formato ISO 8601 completo
+      // Asegurar que experienciaRequerida esté presente
+      if (!datosProcesados.experienciaRequerida && datosProcesados.experienciaMinima !== undefined) {
+        datosProcesados.experienciaRequerida = `${datosProcesados.experienciaMinima} años`;
+      }
+      
+      // Asegurar que las fechas estén en formato YYYY-MM-DD para LocalDate en el backend
       if (datosProcesados.fechaPublicacion) {
-        // Intentar solución alternativa: enviar solo la fecha sin hora
-        datosProcesados.fechaPublicacion = datosProcesados.fechaPublicacion.split('T')[0];
+        // Si la fecha tiene formato datetime, extraer solo la parte de fecha
+        if (typeof datosProcesados.fechaPublicacion === 'string') {
+          datosProcesados.fechaPublicacion = datosProcesados.fechaPublicacion.split('T')[0];
+        }
+      } else {
+        // Si no hay fecha de publicación, usar la fecha actual
+        datosProcesados.fechaPublicacion = new Date().toISOString().split('T')[0];
       }
       
       if (datosProcesados.fechaCierre) {
-        // Intentar solución alternativa: enviar solo la fecha sin hora
-        datosProcesados.fechaCierre = datosProcesados.fechaCierre.split('T')[0];
+        // Si la fecha tiene formato datetime, extraer solo la parte de fecha
+        if (typeof datosProcesados.fechaCierre === 'string') {
+          datosProcesados.fechaCierre = datosProcesados.fechaCierre.split('T')[0];
+        }
+        
+        // Verificar que la fecha de cierre sea posterior a la de publicación
+        const fechaPublicacion = new Date(datosProcesados.fechaPublicacion);
+        const fechaCierre = new Date(datosProcesados.fechaCierre);
+        
+        if (fechaCierre <= fechaPublicacion) {
+          throw new Error("La fecha de cierre debe ser posterior a la fecha de publicación");
+        }
+      }
+      
+      // Asegurar que todos los campos booleanos sean realmente booleanos
+      if (datosProcesados.mostrarSalario !== undefined) {
+        datosProcesados.mostrarSalario = Boolean(datosProcesados.mostrarSalario);
+      }
+      
+      if (datosProcesados.destacada !== undefined) {
+        datosProcesados.destacada = Boolean(datosProcesados.destacada);
       }
       
       // Validación de longitud de campos
@@ -208,37 +298,67 @@ export const vacanteService = {
         datosProcesados.titulo = datosProcesados.titulo.substring(0, 100);
       }
       
-      if (datosProcesados.descripcion && datosProcesados.descripcion.length > 2000) {
-        datosProcesados.descripcion = datosProcesados.descripcion.substring(0, 2000);
+      if (datosProcesados.descripcion && datosProcesados.descripcion.length > 4000) {
+        datosProcesados.descripcion = datosProcesados.descripcion.substring(0, 4000);
       }
       
       if (datosProcesados.habilidadesRequeridas && datosProcesados.habilidadesRequeridas.length > 500) {
         datosProcesados.habilidadesRequeridas = datosProcesados.habilidadesRequeridas.substring(0, 500);
       }
       
-      if (datosProcesados.requisitosAdicionales && datosProcesados.requisitosAdicionales.length > 500) {
-        datosProcesados.requisitosAdicionales = datosProcesados.requisitosAdicionales.substring(0, 500);
+      if (datosProcesados.requisitosAdicionales && datosProcesados.requisitosAdicionales.length > 2000) {
+        datosProcesados.requisitosAdicionales = datosProcesados.requisitosAdicionales.substring(0, 2000);
       }
       
-      if (datosProcesados.beneficios && datosProcesados.beneficios.length > 500) {
-        datosProcesados.beneficios = datosProcesados.beneficios.substring(0, 500);
+      if (datosProcesados.beneficios && datosProcesados.beneficios.length > 2000) {
+        datosProcesados.beneficios = datosProcesados.beneficios.substring(0, 2000);
       }
       
-      const datosJSON = JSON.stringify(datosProcesados);
-      console.log('Datos procesados a enviar en actualizarVacante:', datosJSON);
+      const url = `${API_URL}/vacantes/${id}?reclutadorId=${reclutadorId}`;
       
-      const respuesta = await fetch(`${API_URL}/vacantes/${id}?reclutadorId=${reclutadorId}`, {
+      const requestOptions = {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: datosJSON
-      });
+        body: JSON.stringify(datosProcesados)
+      };
+      
+      const respuesta = await fetch(url, requestOptions);
 
       if (!respuesta.ok) {
-        const errorData = await respuesta.json();
-        throw new Error(errorData.mensaje || 'Error al actualizar la vacante');
+        let errorMessage = 'Error al actualizar la vacante';
+        
+        // Verificar si hay cuerpo en la respuesta
+        const contentType = respuesta.headers.get('content-type');
+        
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await respuesta.json();
+            
+            // Extraer el mensaje de error del objeto de respuesta
+            if (errorData.mensaje) {
+              errorMessage = errorData.mensaje;
+            } else if (errorData.message) {
+              errorMessage = errorData.message;
+            } else if (typeof errorData === 'string') {
+              errorMessage = errorData;
+            } else if (errorData.errors && errorData.errors.length > 0) {
+              // En caso de errores de validación
+              errorMessage = errorData.errors.map((err: any) => err.defaultMessage || err.message).join(", ");
+            }
+          } else {
+            // Si no es JSON, obtener el texto de la respuesta
+            const errorText = await respuesta.text();
+            errorMessage = errorText || errorMessage;
+          }
+        } catch (parseError) {
+          console.error('Error al parsear la respuesta de error:', parseError);
+          errorMessage = `Error al procesar la respuesta del servidor: ${respuesta.status} ${respuesta.statusText}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       return await respuesta.json();
@@ -254,7 +374,7 @@ export const vacanteService = {
       const token = authService.getToken();
       
       const respuesta = await fetch(`${API_URL}/vacantes/${id}/estado?reclutadorId=${reclutadorId}&estado=${estado}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -351,6 +471,75 @@ export const vacanteService = {
       return await respuesta.json();
     } catch (error) {
       console.error('Error en obtenerVacantesPublicas:', error);
+      throw error;
+    }
+  },
+
+  // Verificar si una vacante tiene pruebas técnicas asociadas
+  verificarPruebasTecnicas: async (id: number) => {
+    try {
+      const token = authService.getToken();
+      
+      if (!token) {
+        throw new Error('No se encontró token de autenticación. Por favor, inicie sesión nuevamente.');
+      }
+      
+      const respuesta = await fetch(`${API_URL}/vacantes/${id}/tiene-pruebas`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!respuesta.ok) {
+        const errorData = await respuesta.json();
+        throw new Error(errorData.mensaje || 'Error al verificar pruebas técnicas');
+      }
+
+      return await respuesta.json();
+    } catch (error) {
+      console.error(`Error en verificarPruebasTecnicas(${id}):`, error);
+      throw error;
+    }
+  },
+  
+  // Eliminar una vacante
+  eliminarVacante: async (id: number, reclutadorId: number, eliminarPruebaTecnica: boolean = false) => {
+    try {
+      const token = authService.getToken();
+      
+      if (!token) {
+        throw new Error('No se encontró token de autenticación. Por favor, inicie sesión nuevamente.');
+      }
+      
+      const respuesta = await fetch(`${API_URL}/vacantes/${id}?reclutadorId=${reclutadorId}&eliminarPruebaTecnica=${eliminarPruebaTecnica}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!respuesta.ok) {
+        let errorMessage = 'Error al eliminar la vacante';
+        
+        try {
+          const contentType = respuesta.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await respuesta.json();
+            errorMessage = errorData.mensaje || errorData.message || errorMessage;
+          }
+        } catch (parseError) {
+          console.error('Error al parsear la respuesta de error:', parseError);
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`Error en eliminarVacante(${id}):`, error);
       throw error;
     }
   }

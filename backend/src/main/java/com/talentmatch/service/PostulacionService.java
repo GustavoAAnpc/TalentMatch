@@ -112,4 +112,13 @@ public interface PostulacionService {
      * @return Entidad Postulacion encontrada
      */
     Postulacion buscarPostulacionPorId(Long id);
+
+    /**
+     * Actualiza la carta de presentación de una postulación.
+     * 
+     * @param id ID de la postulación
+     * @param cartaPresentacion Nueva carta de presentación
+     * @return DTO PostulacionDetalleResponse con la información actualizada de la postulación
+     */
+    PostulacionDetalleResponse actualizarCartaPresentacion(Long id, String cartaPresentacion);
 }

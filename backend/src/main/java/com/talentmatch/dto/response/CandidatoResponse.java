@@ -47,6 +47,8 @@ public class CandidatoResponse {
     private Boolean disponibilidadInmediata;
     private Integer totalPostulaciones;
     
+    private String estadoProceso;
+    
     private List<Long> vacantesFavoritasIds;
     private Double porcentajeEmparejamiento;
     

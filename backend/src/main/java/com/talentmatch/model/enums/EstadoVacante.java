@@ -5,6 +5,8 @@ package com.talentmatch.model.enums;
  */
 public enum EstadoVacante {
     ACTIVA,
+    PAUSADA,
     CERRADA,
-    CANCELADA
+    BORRADOR,
+    ELIMINADA
 }

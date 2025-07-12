@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.talentmatch.model.entity.Evaluacion;
@@ -54,4 +57,13 @@ public interface EvaluacionRepository extends JpaRepository<Evaluacion, Long> {
      * @return Lista de evaluaciones con puntuación menor o igual a la especificada
      */
     List<Evaluacion> findByPuntuacionLessThanEqual(Integer puntuacionMaxima);
+    
+    /**
+     * Elimina evaluaciones por ID de prueba técnica.
+     * 
+     * @param pruebaTecnicaId ID de la prueba técnica asociada a las evaluaciones a eliminar
+     */
+    @Modifying
+    @Query("DELETE FROM Evaluacion e WHERE e.respuesta.pregunta.pruebaTecnica.id = :pruebaTecnicaId")
+    void deleteByPruebaTecnicaId(@Param("pruebaTecnicaId") Long pruebaTecnicaId);
 }

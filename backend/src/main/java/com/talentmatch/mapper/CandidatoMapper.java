@@ -38,6 +38,7 @@ public abstract class CandidatoMapper {
     @Mapping(target = "urlFoto", ignore = true)
     @Mapping(target = "estado", constant = "ACTIVO")
     @Mapping(target = "rol", constant = "CANDIDATO")
+    @Mapping(target = "estadoProceso", constant = "Activo")
     public abstract Candidato toCandidato(RegistroCandidatoRequest request);
 
     /**

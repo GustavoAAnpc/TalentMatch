@@ -208,4 +208,26 @@ public class PostulacionServiceImpl implements PostulacionService {
         return postulacionRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró postulación con ID: " + id));
     }
+
+    @Override
+    @Transactional
+    public PostulacionDetalleResponse actualizarCartaPresentacion(Long id, String cartaPresentacion) {
+        Postulacion postulacion = buscarPostulacionPorId(id);
+        
+        // Validar que la carta de presentación no sea nula
+        if (cartaPresentacion == null) {
+            throw new OperacionInvalidaException("La carta de presentación no puede ser nula");
+        }
+        
+        // Actualizar la carta de presentación
+        postulacion.setCartaPresentacion(cartaPresentacion);
+        postulacion.setFechaActualizacion(LocalDateTime.now());
+        
+        // Guardar la postulación actualizada
+        postulacion = postulacionRepository.save(postulacion);
+        
+        log.info("Carta de presentación actualizada para postulación ID: {}", id);
+        
+        return postulacionMapper.toPostulacionDetalleResponse(postulacion);
+    }
 } 

@@ -165,4 +165,13 @@ public interface PostulacionRepository extends JpaRepository<Postulacion, Long> 
      * @return true si existe, false en caso contrario
      */
     boolean existsByCandidatoIdAndVacanteId(Long candidatoId, Long vacanteId);
+    
+    /**
+     * Busca una postulación por ID de vacante y ID de candidato.
+     * 
+     * @param vacanteId ID de la vacante
+     * @param candidatoId ID del candidato
+     * @return Optional con la postulación si existe, vacío en caso contrario
+     */
+    Optional<Postulacion> findByVacanteIdAndCandidatoId(Long vacanteId, Long candidatoId);
 }

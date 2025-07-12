@@ -506,13 +506,34 @@ public class IAServiceImpl implements IAService {
     }
     
     /**
-     * Convierte un mapa de datos de candidato a un objeto CandidatoResponse.
+     * Convierte un mapa de datos a un objeto CandidatoResponse.
      * 
      * @param candidatoData Mapa con los datos del candidato
      * @return Objeto CandidatoResponse
      */
     private CandidatoResponse mapToCandidatoResponse(Map<String, Object> candidatoData) {
-        Long candidatoId = (Long) candidatoData.get("candidatoId");
+        // Manejar el candidatoId que puede ser Integer o Long
+        Long candidatoId;
+        Object rawId = candidatoData.get("candidatoId");
+        
+        // Convertir el ID correctamente según su tipo
+        if (rawId instanceof Integer) {
+            candidatoId = ((Integer) rawId).longValue();
+        } else if (rawId instanceof Long) {
+            candidatoId = (Long) rawId;
+        } else if (rawId instanceof Number) {
+            candidatoId = ((Number) rawId).longValue();
+        } else if (rawId instanceof String) {
+            try {
+                candidatoId = Long.parseLong((String) rawId);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("ID de candidato inválido: " + rawId);
+            }
+        } else {
+            throw new IllegalArgumentException("Tipo de ID de candidato no soportado: " + 
+                (rawId != null ? rawId.getClass().getName() : "null"));
+        }
+        
         Integer puntuacion = (Integer) candidatoData.get("puntuacion");
         String justificacion = (String) candidatoData.get("justificacion");
         
@@ -775,6 +796,81 @@ public class IAServiceImpl implements IAService {
             }
             
             respuesta.setMensajeReclutador(mensajeReclutador.toString());
+        }
+    }
+
+    @Override
+    public String generarDescripcionParametrizada(Map<String, Object> parametros) {
+        try {
+            return generarDescripcionDirecta(parametros);
+        } catch (Exception e) {
+            log.error("Error al generar descripción parametrizada: {}", e.getMessage(), e);
+            throw new IAException("Error al generar descripción", e.getMessage());
+        }
+    }
+    
+    @Override
+    public String generarContenidoCompleto(Map<String, Object> parametros) {
+        try {
+            log.info("Generando contenido completo para vacante con parámetros: {}", parametros);
+            
+            // Extraer el prompt personalizado o generar uno estándar
+            String prompt;
+            if (parametros.containsKey("prompt") && parametros.get("prompt") != null) {
+                prompt = parametros.get("prompt").toString();
+            } else {
+                // Construir prompt estándar con los parámetros disponibles
+                String titulo = parametros.containsKey("titulo") ? parametros.get("titulo").toString() : "Vacante";
+                String area = parametros.containsKey("area") ? parametros.get("area").toString() : "No especificada";
+                String modalidad = parametros.containsKey("modalidad") ? parametros.get("modalidad").toString() : "No especificada";
+                String tipoContrato = parametros.containsKey("tipoContrato") ? parametros.get("tipoContrato").toString() : "No especificado";
+                String ubicacion = parametros.containsKey("ubicacion") ? parametros.get("ubicacion").toString() : "No especificada";
+                int experiencia = 0;
+                if (parametros.containsKey("experienciaMinima")) {
+                    Object expObj = parametros.get("experienciaMinima");
+                    if (expObj instanceof Number) {
+                        experiencia = ((Number) expObj).intValue();
+                    } else if (expObj instanceof String) {
+                        try {
+                            experiencia = Integer.parseInt((String) expObj);
+                        } catch (NumberFormatException e) {
+                            log.warn("No se pudo convertir la experiencia '{}' a entero", expObj);
+                        }
+                    }
+                }
+                
+                // Construir el prompt para solicitar JSON en lugar de texto libre
+                prompt = String.format(
+                    "Genera contenido detallado, profesional y completo para una vacante de empleo con el título \"%s\". " +
+                    "La empresa Vertex está buscando candidatos para trabajar en el área de \"%s\", " +
+                    "en modalidad \"%s\", con tipo de contrato \"%s\" y ubicación en \"%s\". " +
+                    "Se requiere una experiencia mínima de %d años.\n\n" +
+                    "INSTRUCCIONES IMPORTANTES:\n" +
+                    "1. Devuelve SOLAMENTE un JSON válido con la siguiente estructura exacta sin agregar ningún texto adicional antes o después:\n" +
+                    "{\n" +
+                    "  \"descripcion\": \"Texto detallado de la descripción...\",\n" +
+                    "  \"requisitos\": \"Texto detallado de los requisitos...\",\n" +
+                    "  \"beneficios\": \"Texto detallado de los beneficios...\",\n" +
+                    "  \"habilidades\": [\"Habilidad 1\", \"Habilidad 2\", \"Habilidad 3\", \"Habilidad 4\", \"Habilidad 5\", \"Habilidad 6\"]\n" +
+                    "}\n\n" +
+                    "Reglas para el contenido:\n" +
+                    "- En la descripción (extensión mínima 100 palabras): detallar responsabilidades específicas, objetivos del puesto, proyectos en los que trabajará, oportunidades de crecimiento, contexto de la empresa y el impacto esperado del rol.\n" +
+                    "- En los requisitos (mínimo 6 puntos): incluir formación académica específica, certificaciones recomendadas, experiencia previa detallada, conocimientos técnicos concretos, herramientas y plataformas específicas que debe conocer.\n" +
+                    "- En los beneficios (mínimo 6 puntos, DETALLADOS y COMPLETOS): describir exhaustivamente cada beneficio incluyendo compensación, incentivos económicos, desarrollo profesional, capacitación, horarios flexibles, oportunidades de crecimiento, cultura organizacional.\n" +
+                    "- En las habilidades: incluir exactamente 6 habilidades técnicas y blandas BREVES como elementos del array. Cada habilidad debe tener máximo 2-4 palabras, siendo muy concreto y relevante para el puesto.\n\n" +
+                    "NO incluyas marcadores de formato como markdown, numeraciones o viñetas. Usa texto plano.",
+                    titulo, area, modalidad, tipoContrato, ubicacion, experiencia
+                );
+            }
+            
+            // Llamar al servicio de integración para generar el contenido
+            String contenidoGenerado = integracionIAService.enviarSolicitudGemini(prompt);
+             
+            log.info("Contenido completo generado con éxito");
+            return contenidoGenerado;
+        } catch (Exception e) {
+            log.error("Error al generar contenido completo: {}", e.getMessage(), e);
+            throw new IAException("Error al generar contenido completo", e.getMessage());
         }
     }
 } 

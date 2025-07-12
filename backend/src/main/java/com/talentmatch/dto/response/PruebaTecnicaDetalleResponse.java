@@ -33,4 +33,5 @@ public class PruebaTecnicaDetalleResponse {
     private Boolean completada;
     private Integer puntuacionTotal;
     private List<PreguntaResponse> preguntas;
+    private VacanteResumidaResponse vacante;
 }
