@@ -113,7 +113,7 @@ public class Vacante {
     @Column(name = "experiencia_minima")
     private Integer experienciaMinima;
 
-    @Size(max = 1000, message = "Las habilidades requeridas no pueden exceder los 1000 caracteres")
+    @Size(max = 2000, message = "Las habilidades requeridas no pueden exceder los 2000 caracteres")
     @Column(name = "habilidades_requeridas", columnDefinition = "TEXT")
     private String habilidadesRequeridas;
 
@@ -145,6 +145,10 @@ public class Vacante {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reclutador_id", nullable = false, foreignKey = @ForeignKey(name = "fk_vacantes_reclutadores"))
     private Reclutador reclutador;
+
+    @Column(name = "requiere_prueba")
+    @Builder.Default
+    private Boolean requierePrueba = false;
 
     @OneToMany(mappedBy = "vacante", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -238,7 +242,7 @@ public class Vacante {
      * @return true si la vacante está cancelada, false en caso contrario
      */
     public boolean estaCancelada() {
-        return this.estado == EstadoVacante.CANCELADA;
+        return this.estado == EstadoVacante.ELIMINADA;
     }
     
     /**

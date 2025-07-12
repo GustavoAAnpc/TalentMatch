@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.talentmatch.dto.request.ActualizacionReclutadorRequest;
 import com.talentmatch.dto.request.RegistroReclutadorRequest;
+import com.talentmatch.dto.response.DashboardReclutadorResponse;
 import com.talentmatch.dto.response.ReclutadorResponse;
 import com.talentmatch.model.entity.Reclutador;
 
@@ -78,4 +79,12 @@ public interface ReclutadorService {
      * @return Entidad Reclutador encontrada
      */
     Reclutador buscarReclutadorPorId(Long id);
+
+    /**
+     * Obtiene estadísticas para el dashboard del reclutador.
+     * 
+     * @param id ID del reclutador
+     * @return DTO con estadísticas para el dashboard
+     */
+    DashboardReclutadorResponse obtenerEstadisticasDashboard(Long id);
 }

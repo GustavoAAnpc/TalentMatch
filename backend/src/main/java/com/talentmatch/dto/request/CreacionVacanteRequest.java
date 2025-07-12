@@ -64,13 +64,13 @@ public class CreacionVacanteRequest {
     private Integer experienciaMinima;
 
     @NotBlank(message = "Las habilidades requeridas son obligatorias")
-    @Size(max = 500, message = "Las habilidades requeridas no deben exceder los 500 caracteres")
+    @Size(max = 2000, message = "Las habilidades requeridas no deben exceder los 2000 caracteres")
     private String habilidadesRequeridas;
 
-    @Size(max = 500, message = "Los requisitos adicionales no deben exceder los 500 caracteres")
+    @Size(max = 2000, message = "Los requisitos adicionales no deben exceder los 2000 caracteres")
     private String requisitosAdicionales;
 
-    @Size(max = 500, message = "Los beneficios no deben exceder los 500 caracteres")
+    @Size(max = 2000, message = "Los beneficios no deben exceder los 2000 caracteres")
     private String beneficios;
 
     @NotNull(message = "La fecha de publicación es obligatoria")

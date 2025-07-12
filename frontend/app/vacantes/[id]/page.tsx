@@ -11,22 +11,21 @@ import { MainNav } from "@/components/main-nav";
 import { Footer } from "@/components/footer";
 import { toast } from "sonner";
 import {
+  AlertCircle,
+  ArrowLeft,
+  BrainCircuit,
   Briefcase,
-  MapPin,
+  Building,
   Calendar,
   Clock,
   DollarSign,
   GraduationCap,
-  Code,
-  Languages,
   Heart,
-  Share2,
-  ArrowLeft,
-  BrainCircuit,
-  ThumbsUp,
-  AlertCircle,
-  Sparkles,
   Lightbulb,
+  MapPin,
+  Share2,
+  Sparkles,
+  ThumbsUp
 } from "lucide-react";
 
 import { authService } from "@/services/authService";
@@ -35,6 +34,7 @@ import { candidatoService } from "@/services/candidatoService";
 import { iaService } from "@/services/iaService";
 import { VacanteDetalleResponse } from "@/types/vacante";
 import { EmparejamientoResponse } from "@/types/candidato";
+import { postulacionService } from "@/services/postulacionService";
 
 export default function JobDetailPage() {
   const router = useRouter();
@@ -50,6 +50,7 @@ export default function JobDetailPage() {
   const [emparejamiento, setEmparejamiento] = useState<EmparejamientoResponse | null>(null);
   const [cargandoEmparejamiento, setCargandoEmparejamiento] = useState(false);
   const [errorEmparejamiento, setErrorEmparejamiento] = useState<string | null>(null);
+  const [mostrarTextoCompleto, setMostrarTextoCompleto] = useState(false);
   
   // Comprobar si el usuario está autenticado
   const [usuario, setUsuario] = useState<any>(null);
@@ -151,7 +152,7 @@ export default function JobDetailPage() {
   };
   
   // Función para manejar postulación
-  const handlePostulacion = () => {
+  const handlePostulacion = async () => {
     if (!usuario?.id) {
       toast.error("Debes iniciar sesión para postularte a esta vacante");
       router.push("/login");
@@ -163,9 +164,33 @@ export default function JobDetailPage() {
       return;
     }
     
-    // Aquí iría la lógica para la postulación
-    // Por ahora solo simulamos
-    toast.success("Funcionalidad de postulación en desarrollo");
+    try {
+      // Verificar si ya existe una postulación
+      const existePostulacion = await postulacionService.verificarPostulacion(usuario.id, vacanteId);
+      
+      if (existePostulacion) {
+        toast.info("Ya te has postulado a esta vacante");
+        // Redirigir a la página de postulaciones
+        router.push("/dashboard/postulaciones");
+        return;
+      }
+      
+      // Mostrar toast de inicio del proceso
+      toast.info("Iniciando proceso de postulación...");
+      
+      // Crear una nueva postulación
+      const nuevaPostulacion = await postulacionService.crearPostulacion(usuario.id, {
+        vacanteId: vacanteId,
+        cartaPresentacion: "" // Se completará después
+      });
+      
+      // Redirigir a completar la postulación
+      router.push(`/postulacion/${nuevaPostulacion.id}/completar`);
+      
+    } catch (error) {
+      console.error("Error al procesar la postulación:", error);
+      toast.error("Hubo un error al procesar tu postulación. Inténtalo de nuevo.");
+    }
   };
 
   // Formatear la fecha
@@ -301,6 +326,15 @@ export default function JobDetailPage() {
                         <p className="text-sm text-muted-foreground">{vacante.modalidad || "No especificada"}</p>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="h-5 w-5 text-[#38bdf8]" />
+                      <div>
+                        <p className="text-sm font-medium">Experiencia mínima</p>
+                        <p className="text-sm text-muted-foreground">
+                          {vacante.experienciaMinima !== undefined ? `${vacante.experienciaMinima} años` : "No especificada"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -375,21 +409,33 @@ export default function JobDetailPage() {
                       </div>
                     ) : emparejamiento ? (
                       <>
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-sm font-medium">Coincidencia</span>
+                        <div className="mb-2 flex items-center justify-between">
+                          <span className="text-sm font-medium">Coincidencia</span>
                           <span className="text-sm font-bold text-[#38bdf8]">{emparejamiento.porcentaje}%</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
                           <div 
                             className="h-full rounded-full bg-[#38bdf8]" 
                             style={{ width: `${emparejamiento.porcentaje}%` }}
                           ></div>
-                  </div>
+                        </div>
                         
                         {emparejamiento.mensajeCandidato && (
-                  <p className="mt-4 text-sm text-muted-foreground">
-                            {emparejamiento.mensajeCandidato}
-                          </p>
+                          <div className="mt-4">
+                            <p className="text-sm text-muted-foreground">
+                              {mostrarTextoCompleto 
+                                ? emparejamiento.mensajeCandidato 
+                                : `${emparejamiento.mensajeCandidato.substring(0, 218)}...`
+                              }
+                            </p>
+                            <Button 
+                              variant="link" 
+                              className="text-xs text-[#38bdf8] p-0 h-auto mt-1"
+                              onClick={() => setMostrarTextoCompleto(!mostrarTextoCompleto)}
+                            >
+                              {mostrarTextoCompleto ? "Ver menos" : "Ver más"}
+                            </Button>
+                          </div>
                         )}
                         
                         {/* Fortalezas */}

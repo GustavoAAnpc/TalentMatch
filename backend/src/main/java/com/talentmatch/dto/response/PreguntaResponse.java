@@ -19,6 +19,7 @@ public class PreguntaResponse {
     private String enunciado;
     private String tipoPregunta;
     private String opciones;
+    private String respuestaCorrecta;
     private Integer puntuacion;
     private Integer orden;
     private Boolean respondida;

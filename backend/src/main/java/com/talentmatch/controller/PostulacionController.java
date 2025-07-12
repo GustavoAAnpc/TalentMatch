@@ -1,6 +1,7 @@
 package com.talentmatch.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -203,5 +204,21 @@ public class PostulacionController {
             @RequestParam Long candidatoId,
             @RequestParam Long vacanteId) {
         return ResponseEntity.ok(iaService.calcularEmparejamiento(candidatoId, vacanteId));
+    }
+
+    /**
+     * Actualiza la carta de presentación de una postulación.
+     * 
+     * @param id ID de la postulación
+     * @param request Objeto que contiene la carta de presentación
+     * @return ResponseEntity con la postulación actualizada
+     */
+    @PutMapping("/{id}/carta-presentacion")
+    @PreAuthorize("hasAnyRole('CANDIDATO', 'ADMINISTRADOR')")
+    public ResponseEntity<PostulacionDetalleResponse> actualizarCartaPresentacion(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request) {
+        String cartaPresentacion = request.get("cartaPresentacion");
+        return ResponseEntity.ok(postulacionService.actualizarCartaPresentacion(id, cartaPresentacion));
     }
 } 

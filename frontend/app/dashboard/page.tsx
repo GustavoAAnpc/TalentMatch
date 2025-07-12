@@ -33,6 +33,9 @@ import {
 import { authService } from "@/services/authService";
 import { candidatoService } from "@/services/candidatoService";
 import { iaService } from "@/services/iaService";
+import { postulacionService } from "@/services/postulacionService";
+import { pruebaTecnicaService } from "@/services/pruebaTecnicaService";
+import { notificacionService } from "@/services/notificacionService";
 import { VacanteResumenResponse } from "@/types/vacante";
 import { CandidatoResponse, AnalisisPerfilResponse } from "@/types/candidato";
 
@@ -50,6 +53,15 @@ export default function DashboardPage() {
   // Estado para el análisis de perfil
   const [analisisPerfil, setAnalisisPerfil] = useState<AnalisisPerfilResponse | null>(null);
   const [cargandoAnalisis, setCargandoAnalisis] = useState(false);
+  
+  // Estado para el resumen de actividad
+  const [resumenActividad, setResumenActividad] = useState({
+    postulaciones: 0,
+    pruebasTecnicas: 0,
+    notificaciones: 0,
+    mensajes: 0
+  });
+  const [cargandoResumen, setCargandoResumen] = useState(false);
   
   // Estado para controlar carga progresiva
   const [cargaProgresiva, setCargaProgresiva] = useState({
@@ -127,11 +139,12 @@ export default function DashboardPage() {
         return; // Salir si no se puede cargar el perfil básico
       }
       
-      // Cargar recomendaciones y análisis del perfil en paralelo
+      // Cargar recomendaciones, análisis del perfil y resumen de actividad en paralelo
       // después de mostrar la interfaz principal
       Promise.allSettled([
         cargarRecomendaciones(candidatoId),
-        cargarAnalisisPerfil(candidatoId)
+        cargarAnalisisPerfil(candidatoId),
+        cargarResumenActividad(candidatoId)
       ]).then(() => {
         setCargaProgresiva(prev => ({...prev, contenidoPrincipal: true}));
         console.log('Carga de contenido adicional completada');
@@ -230,6 +243,38 @@ export default function DashboardPage() {
       // No mostramos toast para evitar sobrecarga de mensajes
     } finally {
       setCargandoAnalisis(false);
+    }
+  };
+  
+  // Cargar resumen de actividad
+  const cargarResumenActividad = async (candidatoId: number) => {
+    try {
+      setCargandoResumen(true);
+      console.log(`Cargando resumen de actividad para candidato ID: ${candidatoId}`);
+      
+      // Cargar datos en paralelo
+      const [postulaciones, pruebasTecnicas, notificaciones] = await Promise.allSettled([
+        postulacionService.obtenerPostulaciones(candidatoId),
+        pruebaTecnicaService.obtenerPruebasPorCandidato(candidatoId),
+        notificacionService.obtenerNotificacionesNoLeidas(candidatoId)
+      ]);
+      
+      // Procesar resultados
+      const resumen = {
+        postulaciones: postulaciones.status === 'fulfilled' ? postulaciones.value.length : 0,
+        pruebasTecnicas: pruebasTecnicas.status === 'fulfilled' ? pruebasTecnicas.value.length : 0,
+        notificaciones: notificaciones.status === 'fulfilled' ? notificaciones.value.length : 0,
+        mensajes: 0 // Por ahora no hay sistema de mensajes implementado
+      };
+      
+      setResumenActividad(resumen);
+      console.log('Resumen de actividad cargado:', resumen);
+      
+    } catch (error) {
+      console.error("Error al cargar resumen de actividad:", error);
+      // No mostrar error para no bloquear la interfaz
+    } finally {
+      setCargandoResumen(false);
     }
   };
   
@@ -469,49 +514,68 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="pt-4 px-5">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between border-b pb-2">
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="h-5 w-5 text-[#38bdf8]" />
-                      <div>
-                        <p className="text-sm font-medium">Postulaciones</p>
-                        <p className="text-xs text-muted-foreground">Procesos activos</p>
-                      </div>
+                  {cargandoResumen ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="flex items-center justify-between border-b pb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="h-5 w-5 bg-gray-200 rounded animate-pulse"></div>
+                            <div>
+                              <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                              <div className="h-3 bg-gray-200 rounded w-16 animate-pulse mt-1"></div>
+                            </div>
+                          </div>
+                          <div className="h-6 w-8 bg-gray-200 rounded animate-pulse"></div>
+                        </div>
+                      ))}
                     </div>
-                    <Badge className="bg-[#38bdf8]">1</Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between border-b pb-2">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-[#38bdf8]" />
-                      <div>
-                        <p className="text-sm font-medium">Pruebas técnicas</p>
-                        <p className="text-xs text-muted-foreground">Pendientes de resolver</p>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between border-b pb-2">
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="h-5 w-5 text-[#38bdf8]" />
+                          <div>
+                            <p className="text-sm font-medium">Postulaciones</p>
+                            <p className="text-xs text-muted-foreground">Procesos activos</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-[#38bdf8]">{resumenActividad.postulaciones}</Badge>
                       </div>
-                    </div>
-                    <Badge className="bg-yellow-500">2</Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between border-b pb-2">
-                    <div className="flex items-center gap-2">
-                      <Bell className="h-5 w-5 text-[#38bdf8]" />
-                      <div>
-                        <p className="text-sm font-medium">Notificaciones</p>
-                        <p className="text-xs text-muted-foreground">Sin leer</p>
+                      
+                      <div className="flex items-center justify-between border-b pb-2">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-5 w-5 text-[#38bdf8]" />
+                          <div>
+                            <p className="text-sm font-medium">Pruebas técnicas</p>
+                            <p className="text-xs text-muted-foreground">Pendientes de resolver</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-yellow-500">{resumenActividad.pruebasTecnicas}</Badge>
                       </div>
-                    </div>
-                    <Badge className="bg-[#38bdf8]">3</Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5 text-[#38bdf8]" />
-                      <div>
-                        <p className="text-sm font-medium">Mensajes</p>
-                        <p className="text-xs text-muted-foreground">No leídos</p>
+                      
+                      <div className="flex items-center justify-between border-b pb-2">
+                        <div className="flex items-center gap-2">
+                          <Bell className="h-5 w-5 text-[#38bdf8]" />
+                          <div>
+                            <p className="text-sm font-medium">Notificaciones</p>
+                            <p className="text-xs text-muted-foreground">Sin leer</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-[#38bdf8]">{resumenActividad.notificaciones}</Badge>
                       </div>
-                    </div>
-                    <Badge className="bg-[#38bdf8]">2</Badge>
-                  </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-5 w-5 text-[#38bdf8]" />
+                          <div>
+                            <p className="text-sm font-medium">Mensajes</p>
+                            <p className="text-xs text-muted-foreground">No leídos</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-[#38bdf8]">{resumenActividad.mensajes}</Badge>
+                      </div>
+                    </>
+                  )}
                 </div>
                 
                 <div className="mt-4 pt-3 border-t">
@@ -627,7 +691,7 @@ export default function DashboardPage() {
                             <div className="p-4">
                             <div className="flex justify-between items-start mb-2">
                               <h3 className="font-semibold text-[#0a192f]">{vacante.titulo}</h3>
-                              {vacante.esFavorita && (
+                              {vacante.destacada && (
                                 <CircleCheck className="h-4 w-4 text-green-500 flex-shrink-0" />
                               )}
                             </div>
@@ -646,7 +710,7 @@ export default function DashboardPage() {
                                   )}
                     </div>
                               <p className="mt-2 text-xs line-clamp-2 text-muted-foreground">
-                                {vacante.descripcion}
+                                {vacante.empresa || 'Empresa no especificada'}
                               </p>
                             <div className="mt-3 flex justify-between items-center">
                               <div className="flex items-center">

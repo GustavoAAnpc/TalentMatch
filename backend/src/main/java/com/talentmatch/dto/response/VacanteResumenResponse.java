@@ -1,7 +1,7 @@
 package com.talentmatch.dto.response;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -61,7 +61,7 @@ public class VacanteResumenResponse {
     /**
      * Fecha de publicación de la vacante.
      */
-    private LocalDateTime fechaPublicacion;
+    private LocalDate fechaPublicacion;
     
     /**
      * ID del reclutador que publicó la vacante.
@@ -82,4 +82,9 @@ public class VacanteResumenResponse {
      * Porcentaje de compatibilidad con el candidato (0-100).
      */
     private Integer compatibilidad;
+    
+    /**
+     * Habilidades requeridas para la vacante.
+     */
+    private String habilidadesRequeridas;
 }
