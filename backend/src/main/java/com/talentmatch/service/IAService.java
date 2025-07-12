@@ -58,22 +58,6 @@ public interface IAService {
     String generarDescripcionVacante(Long vacanteId);
     
     /**
-     * Genera una descripción de vacante basada en parámetros sin requerir una vacante existente.
-     * 
-     * @param parametros Mapa con los datos de la vacante (título, habilidades, etc.)
-     * @return Descripción generada
-     */
-    String generarDescripcionParametrizada(Map<String, Object> parametros);
-    
-    /**
-     * Genera contenido completo para una vacante (descripción, requisitos, beneficios y habilidades).
-     * 
-     * @param parametros Mapa con los datos de la vacante y el prompt personalizado
-     * @return Texto estructurado con secciones para cada parte del contenido
-     */
-    String generarContenidoCompleto(Map<String, Object> parametros);
-    
-    /**
      * Analiza la compatibilidad entre todos los candidatos postulados a una vacante.
      * 
      * @param vacanteId ID de la vacante

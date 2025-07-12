@@ -30,7 +30,6 @@ public class VacanteDetalleResponse {
     private Double salarioMaximo;
     private Boolean mostrarSalario;
     private String experienciaRequerida;
-    private Integer experienciaMinima;
     private String habilidadesRequeridas;
     private String requisitosAdicionales;
     private String beneficios;
@@ -41,5 +40,4 @@ public class VacanteDetalleResponse {
     private LocalDateTime fechaActualizacion;
     private ReclutadorResumidoResponse reclutador;
     private Integer totalPostulaciones;
-    private Boolean requierePrueba;
 }

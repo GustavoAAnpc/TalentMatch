@@ -53,13 +53,13 @@ public class ActualizacionVacanteRequest {
     @Min(value = 0, message = "La experiencia mínima no puede ser negativa")
     private Integer experienciaMinima;
 
-    @Size(max = 2000, message = "Las habilidades requeridas no deben exceder los 2000 caracteres")
+    @Size(max = 500, message = "Las habilidades requeridas no deben exceder los 500 caracteres")
     private String habilidadesRequeridas;
 
-    @Size(max = 2000, message = "Los requisitos adicionales no deben exceder los 2000 caracteres")
+    @Size(max = 500, message = "Los requisitos adicionales no deben exceder los 500 caracteres")
     private String requisitosAdicionales;
 
-    @Size(max = 2000, message = "Los beneficios no deben exceder los 2000 caracteres")
+    @Size(max = 500, message = "Los beneficios no deben exceder los 500 caracteres")
     private String beneficios;
 
     private LocalDate fechaPublicacion;

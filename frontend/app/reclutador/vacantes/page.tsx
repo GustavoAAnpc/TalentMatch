@@ -7,32 +7,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { Pencil, Plus, Search, Filter, ChevronDown, Calendar, Users, AlertTriangle, X, Check } from "lucide-react"
+import { Pencil, Plus, Search, Filter, ChevronDown, Calendar, Users, AlertTriangle } from "lucide-react"
 import { vacanteService } from "@/services/vacanteService"
 import { authService } from "@/services/authService"
-import { VacanteResumenResponse, EstadoVacante } from "@/types/vacante"
+import { VacanteResumenResponse } from "@/types/vacante"
 import { formatearFecha } from "@/lib/utils"
-
-// Definimos las áreas disponibles según el formulario de vacantes
-const DEPARTAMENTOS_DISPONIBLES = [
-  "Tecnología",
-  "Diseño",
-  "Marketing",
-  "Ventas",
-  "Recursos Humanos",
-  "Finanzas",
-  "Operaciones"
-];
 
 export default function VacanciesPage() {
   const [vacantes, setVacantes] = useState<VacanteResumenResponse[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState("")
-  
-  // Estados para filtros (solo mantenemos dos)
-  const [filtroArea, setFiltroArea] = useState<string | null>(null)
-  const [filtroEstado, setFiltroEstado] = useState<string | null>(null)
 
   useEffect(() => {
     const cargarVacantes = async () => {
@@ -69,41 +54,8 @@ export default function VacanciesPage() {
         
         console.log("Cargando vacantes para el reclutador con ID:", usuario.id)
         const data = await vacanteService.obtenerVacantesReclutador(usuario.id)
-        
-        // Depurar los datos recibidos para entender la estructura
-        console.log("Datos de vacantes recibidos:", data)
-        if (data && data.length > 0) {
-          console.log("Ejemplo de vacante:", data[0])
-          console.log("Tipo de fechaPublicacion:", typeof data[0].fechaPublicacion)
-          console.log("Valor de fechaPublicacion:", JSON.stringify(data[0].fechaPublicacion))
-        }
-        
-        // Procesar las fechas de publicación
-        const vacantesConFechas = data.map((vacante: any) => {
-          // Crear una copia del objeto vacante para no modificar el original
-          const vacanteProcessed = { ...vacante };
-          
-          // Depurar la fecha de publicación específica
-          console.log(`Procesando vacante ID ${vacante.id}, fecha de publicación:`, 
-            vacante.fechaPublicacion, 
-            "Tipo:", typeof vacante.fechaPublicacion);
-          
-          // No necesitamos procesar manualmente las fechas aquí, ya que la función
-          // formatearFecha en utils.ts ahora maneja todos los casos posibles.
-          // Solo necesitamos asegurarnos de que la propiedad exista.
-          
-          if (!vacante.fechaPublicacion && vacante.fechaCreacion) {
-            // Si no hay fecha de publicación, usar la fecha de creación
-            vacanteProcessed.fechaPublicacion = vacante.fechaCreacion;
-            console.log(`Vacante ID ${vacante.id} sin fechaPublicacion, usando fechaCreacion:`, vacante.fechaCreacion);
-          }
-          
-          return vacanteProcessed;
-        });
-        
-        console.log("Vacantes procesadas:", vacantesConFechas);
-        setVacantes(vacantesConFechas);
-        setCargando(false);
+        setVacantes(data)
+        setCargando(false)
       } catch (err) {
         console.error("Error al cargar las vacantes:", err)
         setError("No se pudieron cargar las vacantes")
@@ -114,17 +66,10 @@ export default function VacanciesPage() {
     cargarVacantes()
   }, [])
 
-  // Filtrar vacantes según búsqueda y filtros
-  const vacantesFiltradas = vacantes.filter(vacante => {
-    // Filtro de búsqueda por texto
-    const coincideBusqueda = vacante.titulo.toLowerCase().includes(busqueda.toLowerCase())
-    
-    // Filtros adicionales (solo dos)
-    const coincideArea = !filtroArea || vacante.area === filtroArea
-    const coincideEstado = !filtroEstado || vacante.estado === filtroEstado
-    
-    return coincideBusqueda && coincideArea && coincideEstado
-  })
+  // Filtrar vacantes según búsqueda
+  const vacantesFiltradas = vacantes.filter(vacante => 
+    vacante.titulo.toLowerCase().includes(busqueda.toLowerCase())
+  )
 
   // Obtener el color de la badge según el estado
   const getEstadoColor = (estado: string) => {
@@ -135,39 +80,10 @@ export default function VacanciesPage() {
         return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
       case "CERRADA":
         return "bg-red-100 text-red-800 hover:bg-red-200"
-      case "BORRADOR":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200"
-      case "ELIMINADA":
-        return "bg-red-50 text-red-600 hover:bg-red-100"
       default:
         return "bg-gray-100 text-gray-800 hover:bg-gray-200"
     }
   }
-  
-  // Limpiar todos los filtros
-  const limpiarFiltros = () => {
-    setFiltroArea(null)
-    setFiltroEstado(null)
-  }
-  
-  // Verificar si hay algún filtro activo
-  const hayFiltrosActivos = filtroArea || filtroEstado
-
-  // Función para obtener una fecha de publicación para mostrar
-  const obtenerFechaPublicacion = (vacante: VacanteResumenResponse) => {
-    try {
-      if (vacante.fechaPublicacion) {
-        return formatearFecha(vacante.fechaPublicacion);
-      } else if (vacante.fechaCreacion) {
-        return formatearFecha(vacante.fechaCreacion) + " (creación)";
-      } else {
-        return "No disponible";
-      }
-    } catch (error) {
-      console.error("Error al formatear fecha:", error, vacante);
-      return "Error de formato";
-    }
-  };
 
   return (
     <div className="flex flex-col space-y-6 p-8 pt-6">
@@ -200,96 +116,25 @@ export default function VacanciesPage() {
               </Button>
             </div>
             <div className="flex items-center space-x-2">
-              {/* Botón para limpiar filtros (solo visible cuando hay filtros activos) */}
-              {hayFiltrosActivos && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={limpiarFiltros} 
-                  className="h-9 text-xs text-red-500 hover:text-red-700"
-                >
-                  <X className="mr-1 h-4 w-4" />
-                  Limpiar
-                </Button>
-              )}
-              
-              {/* Filtro por Estado */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className={filtroEstado ? "border-blue-500 text-blue-500" : ""}>
-                    Estado
+                  <Button variant="outline">
+                    <Filter className="mr-2 h-4 w-4" />
+                    Filtrar
                     <ChevronDown className="ml-2 h-4 w-4" />
-                    {filtroEstado && <Badge className="ml-2 bg-blue-500">!</Badge>}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel>Filtrar por Estado</DropdownMenuLabel>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Filtrar por</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  
-                  {Object.values(EstadoVacante).map(estado => (
-                    <DropdownMenuItem 
-                      key={estado} 
-                      className={filtroEstado === estado ? "bg-blue-50 text-blue-600" : ""}
-                      onClick={() => setFiltroEstado(filtroEstado === estado ? null : estado)}
-                    >
-                      {estado}
-                      {filtroEstado === estado && <Check className="ml-auto h-4 w-4" />}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              
-              {/* Filtro por Departamento/Área */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className={filtroArea ? "border-blue-500 text-blue-500" : ""}>
-                    Departamento
-                    <ChevronDown className="ml-2 h-4 w-4" />
-                    {filtroArea && <Badge className="ml-2 bg-blue-500">!</Badge>}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Filtrar por Departamento</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  
-                  {DEPARTAMENTOS_DISPONIBLES.map(area => (
-                    <DropdownMenuItem 
-                      key={area} 
-                      className={filtroArea === area ? "bg-blue-50 text-blue-600" : ""}
-                      onClick={() => setFiltroArea(filtroArea === area ? null : area)}
-                    >
-                      {area}
-                      {filtroArea === area && <Check className="ml-auto h-4 w-4" />}
-                    </DropdownMenuItem>
-                  ))}
+                  <DropdownMenuItem>Departamento</DropdownMenuItem>
+                  <DropdownMenuItem>Ubicación</DropdownMenuItem>
+                  <DropdownMenuItem>Estado</DropdownMenuItem>
+                  <DropdownMenuItem>Fecha</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
-
-          {/* Mostrar filtros activos */}
-          {hayFiltrosActivos && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {filtroArea && (
-                <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 hover:bg-blue-100">
-                  Departamento: {filtroArea}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => setFiltroArea(null)}
-                  />
-                </Badge>
-              )}
-              {filtroEstado && (
-                <Badge variant="outline" className="flex items-center gap-1 bg-blue-50 hover:bg-blue-100">
-                  Estado: {filtroEstado}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => setFiltroEstado(null)}
-                  />
-                </Badge>
-              )}
-            </div>
-          )}
 
           {cargando ? (
             <div className="flex justify-center items-center p-8">
@@ -302,10 +147,7 @@ export default function VacanciesPage() {
             </div>
           ) : vacantesFiltradas.length === 0 ? (
             <div className="text-center p-8 text-gray-500">
-              {hayFiltrosActivos 
-                ? "No se encontraron vacantes con los filtros seleccionados."
-                : "No se encontraron vacantes. ¡Comienza creando una!"
-              }
+              No se encontraron vacantes. ¡Comienza creando una!
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -343,7 +185,7 @@ export default function VacanciesPage() {
                       <td className="py-3 px-4">
                         <div className="flex items-center">
                           <Calendar className="h-4 w-4 mr-1 text-gray-500" />
-                          <span>{obtenerFechaPublicacion(vacante)}</span>
+                          <span>{vacante.fechaPublicacion ? formatearFecha(vacante.fechaPublicacion) : "-"}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4 text-center">

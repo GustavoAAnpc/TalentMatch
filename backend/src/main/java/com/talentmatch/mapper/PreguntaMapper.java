@@ -47,7 +47,6 @@ public abstract class PreguntaMapper {
     @Mapping(target = "enunciado", source = "enunciado")
     @Mapping(target = "tipoPregunta", source = "tipoPregunta")
     @Mapping(target = "opciones", source = "opciones")
-    @Mapping(target = "respuestaCorrecta", source = "respuestaCorrecta")
     @Mapping(target = "puntuacion", source = "puntuacion")
     @Mapping(target = "orden", source = "orden")
     @Mapping(target = "respuesta", source = "respuesta")

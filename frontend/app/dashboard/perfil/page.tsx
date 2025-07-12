@@ -2514,67 +2514,6 @@ export default function PerfilPage() {
           </Tabs>
         </div>
       </div>
-      
-      {/* Modales para formularios */}
-      <ModalForm 
-        title="Añadir experiencia laboral"
-        description="Completa los datos de tu experiencia profesional"
-        isOpen={mostrarFormExperiencia}
-        onClose={() => setMostrarFormExperiencia(false)}
-      >
-        <AddExperienceForm 
-          onAdd={agregarExperiencia}
-          onCancel={() => setMostrarFormExperiencia(false)}
-        />
-      </ModalForm>
-      
-      <ModalForm 
-        title="Añadir educación"
-        description="Completa los datos de tu formación académica"
-        isOpen={mostrarFormEducacion}
-        onClose={() => setMostrarFormEducacion(false)}
-      >
-        <AddEducationForm 
-          onAdd={agregarEducacion}
-          onCancel={() => setMostrarFormEducacion(false)}
-        />
-      </ModalForm>
-      
-      <ModalForm 
-        title="Añadir habilidad técnica"
-        description="Completa los datos de tu habilidad técnica"
-        isOpen={mostrarFormHabilidad}
-        onClose={() => setMostrarFormHabilidad(false)}
-      >
-        <AddSkillForm 
-          onAdd={agregarHabilidad}
-          onCancel={() => setMostrarFormHabilidad(false)}
-        />
-      </ModalForm>
-      
-      <ModalForm 
-        title="Añadir certificación"
-        description="Completa los datos de tu certificación profesional"
-        isOpen={mostrarFormCertificacion}
-        onClose={() => setMostrarFormCertificacion(false)}
-      >
-        <AddCertificationForm 
-          onAdd={agregarCertificacion}
-          onCancel={() => setMostrarFormCertificacion(false)}
-        />
-      </ModalForm>
-      
-      <ModalForm 
-        title="Añadir idioma"
-        description="Completa los datos del idioma que dominas"
-        isOpen={mostrarFormIdioma}
-        onClose={() => setMostrarFormIdioma(false)}
-      >
-        <AddLanguageForm 
-          onAdd={agregarIdioma}
-          onCancel={() => setMostrarFormIdioma(false)}
-        />
-      </ModalForm>
     </div>
   )
 }

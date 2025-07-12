@@ -46,16 +46,6 @@ public interface PruebaTecnicaService {
     PruebaTecnicaDetalleResponse asignarAPostulacion(Long pruebaTecnicaId, Long postulacionId, Long reclutadorId);
 
     /**
-     * Asigna una prueba técnica a un candidato.
-     * 
-     * @param pruebaTecnicaId ID de la prueba técnica
-     * @param candidatoId ID del candidato
-     * @param reclutadorId ID del reclutador que asigna la prueba
-     * @return DTO PruebaTecnicaDetalleResponse con la información actualizada de la prueba
-     */
-    PruebaTecnicaDetalleResponse asignarACandidato(Long pruebaTecnicaId, Long candidatoId, Long reclutadorId);
-
-    /**
      * Crea una pregunta en una prueba técnica.
      * 
      * @param pruebaTecnicaId ID de la prueba técnica
@@ -163,86 +153,4 @@ public interface PruebaTecnicaService {
      * @return Entidad PruebaTecnica encontrada
      */
     PruebaTecnica buscarPruebaTecnicaPorId(Long id);
-
-    /**
-     * Regenera las preguntas para una prueba técnica existente utilizando IA.
-     * 
-     * @param pruebaTecnicaId ID de la prueba técnica
-     * @param reclutadorId ID del reclutador
-     * @param numPreguntas Número de preguntas a generar
-     * @return DTO PruebaTecnicaDetalleResponse con la información de la prueba actualizada con nuevas preguntas
-     */
-    PruebaTecnicaDetalleResponse regenerarPreguntasParaPrueba(Long pruebaTecnicaId, Long reclutadorId, int numPreguntas);
-
-    /**
-     * Actualiza una pregunta existente de una prueba técnica.
-     * 
-     * @param preguntaId ID de la pregunta a actualizar
-     * @param reclutadorId ID del reclutador que realiza la actualización
-     * @param request DTO con la información actualizada de la pregunta
-     * @return DTO PreguntaResponse con la información actualizada
-     */
-    PreguntaResponse actualizarPregunta(Long preguntaId, Long reclutadorId, CreacionPreguntaRequest request);
-
-    /**
-     * Busca una pregunta por su ID.
-     * 
-     * @param preguntaId ID de la pregunta
-     * @return DTO PreguntaResponse con la información de la pregunta
-     */
-    PreguntaResponse buscarPreguntaPorId(Long preguntaId);
-
-    /**
-     * Actualiza una prueba técnica existente.
-     * 
-     * @param pruebaTecnicaId ID de la prueba técnica a actualizar
-     * @param reclutadorId ID del reclutador que actualiza la prueba
-     * @param request DTO con la información actualizada
-     * @return DTO PruebaTecnicaDetalleResponse con la información actualizada
-     */
-    PruebaTecnicaDetalleResponse actualizarPruebaTecnica(Long pruebaTecnicaId, Long reclutadorId, CreacionPruebaTecnicaRequest request);
-
-    /**
-     * Genera una prueba técnica con IA basada solo en título y descripción (sin vacante asociada).
-     * 
-     * @param reclutadorId ID del reclutador que crea la prueba
-     * @param titulo Título de la prueba
-     * @param descripcion Descripción de la prueba
-     * @param tecnologias Tecnologías para la prueba (separadas por comas)
-     * @param numPreguntas Número de preguntas a generar
-     * @return DTO PruebaTecnicaDetalleResponse con la información de la prueba generada
-     */
-    PruebaTecnicaDetalleResponse generarPruebaConIAPorTitulo(Long reclutadorId, String titulo, String descripcion, String tecnologias, int numPreguntas);
-
-    /**
-     * Elimina una prueba técnica.
-     * 
-     * @param pruebaTecnicaId ID de la prueba técnica a eliminar
-     * @param reclutadorId ID del reclutador que elimina la prueba
-     */
-    void eliminarPruebaTecnica(Long pruebaTecnicaId, Long reclutadorId);
-
-    /**
-     * Elimina una pregunta de una prueba técnica.
-     * 
-     * @param preguntaId ID de la pregunta a eliminar
-     * @param reclutadorId ID del reclutador que elimina la pregunta
-     */
-    void eliminarPregunta(Long preguntaId, Long reclutadorId);
-
-    /**
-     * Busca una prueba técnica por ID de postulación.
-     * 
-     * @param postulacionId ID de la postulación
-     * @return Entidad PruebaTecnica asociada a la postulación
-     */
-    PruebaTecnica buscarPruebaTecnicaPorPostulacion(Long postulacionId);
-
-    /**
-     * Busca una prueba técnica por ID de postulación y la convierte a DTO.
-     * 
-     * @param postulacionId ID de la postulación
-     * @return DTO PruebaTecnicaDetalleResponse con la información de la prueba
-     */
-    PruebaTecnicaDetalleResponse buscarPorPostulacion(Long postulacionId);
 }

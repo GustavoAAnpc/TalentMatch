@@ -62,12 +62,9 @@ public class Pregunta {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String enunciado;
 
-    /**
-     * Tipo de pregunta (OPCION_MULTIPLE, DESARROLLO, VERDADERO_FALSO, CODIGO)
-     */
     @NotBlank(message = "El tipo de pregunta es obligatorio")
-    @Pattern(regexp = "^(OPCION_MULTIPLE|ABIERTA|VERDADERO_FALSO|CODIGO|TEORICA)$", 
-            message = "El tipo de pregunta debe ser OPCION_MULTIPLE, ABIERTA, VERDADERO_FALSO, CODIGO o TEORICA")
+    @Pattern(regexp = "^(OPCION_MULTIPLE|DESARROLLO|VERDADERO_FALSO|CODIGO)$", 
+            message = "El tipo de pregunta debe ser OPCION_MULTIPLE, DESARROLLO, VERDADERO_FALSO o CODIGO")
     @Column(name = "tipo_pregunta", nullable = false, length = 20)
     private String tipoPregunta;
 

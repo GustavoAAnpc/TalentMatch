@@ -11,11 +11,9 @@ import com.talentmatch.model.entity.Usuario;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.talentmatch.dto.request.ActualizacionCandidatoRequest;
@@ -33,7 +31,6 @@ import com.talentmatch.service.CandidatoService;
 import com.talentmatch.service.StorageService;
 import com.talentmatch.service.IntegracionIAService;
 
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -515,9 +512,10 @@ public class CandidatoServiceImpl implements CandidatoService {
                                 log.warn("Modalidad no reconocida: {}", vacante.getModalidad());
                             }
                         }
-                        // Asignar fechaPublicacion si existe
+                        // Convertir LocalDate a LocalDateTime para fechaPublicacion
                         if (vacante.getFechaPublicacion() != null) {
-                            resumen.setFechaPublicacion(vacante.getFechaPublicacion());
+                            resumen.setFechaPublicacion(
+                                vacante.getFechaPublicacion().atStartOfDay());
                         }
                         resumen.setEstado(vacante.getEstado());
                         
@@ -812,107 +810,5 @@ public class CandidatoServiceImpl implements CandidatoService {
         // PASO 4: Si todo lo demás falla, usar la imagen por defecto genérica
         log.info("No se encontró foto de perfil de OAuth2, usando imagen por defecto");
         return "https://storage.googleapis.com/talentmatch-assets/default-avatar.png";
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<CandidatoResponse> filtrarCandidatos(
-            String tituloProfesional,
-            String nombre,
-            String habilidad,
-            Integer experienciaMinima,
-            String ubicacion,
-            Boolean disponibilidadInmediata,
-            Pageable pageable) {
-        
-        // Creamos una especificación dinámica para aplicar los filtros
-        Specification<Candidato> spec = (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            
-            // Filtro por título profesional
-            if (StringUtils.hasText(tituloProfesional)) {
-                predicates.add(criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("tituloProfesional")),
-                    "%" + tituloProfesional.toLowerCase() + "%"));
-            }
-            
-            // Filtro por nombre
-            if (StringUtils.hasText(nombre)) {
-                String nombreLower = nombre.toLowerCase();
-                Predicate nombrePredicate = criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("nombre")),
-                    "%" + nombreLower + "%");
-                Predicate apellidoPredicate = criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("apellido")),
-                    "%" + nombreLower + "%");
-                predicates.add(criteriaBuilder.or(nombrePredicate, apellidoPredicate));
-            }
-            
-            // Filtro por habilidad
-            if (StringUtils.hasText(habilidad)) {
-                predicates.add(criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("habilidadesPrincipales")),
-                    "%" + habilidad.toLowerCase() + "%"));
-            }
-            
-            // Filtro por experiencia mínima
-            if (experienciaMinima != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(
-                    root.get("experienciaAnios"), experienciaMinima));
-            }
-            
-            // Filtro por ubicación
-            if (StringUtils.hasText(ubicacion)) {
-                predicates.add(criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("ubicacion")),
-                    "%" + ubicacion.toLowerCase() + "%"));
-            }
-            
-            // Filtro por disponibilidad inmediata
-            if (disponibilidadInmediata != null) {
-                predicates.add(criteriaBuilder.equal(
-                    root.get("disponibilidadInmediata"), disponibilidadInmediata));
-            }
-            
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
-        
-        // Aplicamos la especificación y la paginación
-        Page<Candidato> candidatos = candidatoRepository.findAll(spec, pageable);
-        
-        // Mapeamos los resultados a DTOs
-        return candidatos.map(candidatoMapper::toCandidatoResponse);
-    }
-
-    @Override
-    @Transactional
-    @PreAuthorize("hasAnyRole('RECLUTADOR', 'ADMINISTRADOR')")
-    public CandidatoResponse actualizarEstado(Long id, String estado) {
-        try {
-            log.info("Actualizando estado del candidato ID: {} a: {}", id, estado);
-            
-            Candidato candidato = buscarCandidatoPorId(id);
-            
-            // Validar estado
-            if (estado == null || estado.trim().isEmpty()) {
-                throw new IllegalArgumentException("El estado no puede estar vacío");
-            }
-            
-            // Actualizar el estado del proceso (estado personalizado) como una propiedad
-            candidato.setEstadoProceso(estado);
-            
-            // Actualizar fecha de modificación
-            candidato.setFechaActualizacion(LocalDateTime.now());
-            
-            // Guardar el candidato actualizado
-            candidato = candidatoRepository.save(candidato);
-            
-            log.info("Estado del candidato actualizado con éxito, ID: {}", candidato.getId());
-            
-            return candidatoMapper.toCandidatoResponse(candidato);
-        } catch (Exception e) {
-            log.error("Error al actualizar el estado del candidato ID: {}, Error: {}", id, e.getMessage(), e);
-            throw new RuntimeException("Ha ocurrido un error al actualizar el estado del candidato: " + e.getMessage(), e);
-        }
     }
 } 

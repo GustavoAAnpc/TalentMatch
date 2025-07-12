@@ -113,13 +113,4 @@ public interface PruebaTecnicaRepository extends JpaRepository<PruebaTecnica, Lo
     List<PruebaTecnica> findByPostulacionCandidatoIdAndCompletada(
             @Param("candidatoId") Long candidatoId,
             @Param("completada") boolean completada);
-            
-    /**
-     * Busca una prueba técnica por ID de postulación.
-     * 
-     * @param postulacionId ID de la postulación asociada a la prueba técnica
-     * @return Optional con la prueba técnica si existe, vacío en caso contrario
-     */
-    @Query("SELECT pt FROM PruebaTecnica pt WHERE pt.postulacion.id = :postulacionId")
-    Optional<PruebaTecnica> findByPostulacionId(@Param("postulacionId") Long postulacionId);
 }

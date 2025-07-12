@@ -34,32 +34,31 @@ export interface CreacionVacanteRequest {
 export interface VacanteResumenResponse {
   id: number;
   titulo: string;
-  empresa?: string;
+  descripcion: string;
+  area?: string;
   ubicacion?: string;
   modalidad?: string;
-  fechaPublicacion: string;
-  fechaCierre?: string;
-  estado: string;
-  postulacionesCount?: number;
-  destacada?: boolean;
+  tipoContrato?: string;
   salarioMinimo?: number;
   salarioMaximo?: number;
   mostrarSalario?: boolean;
-  experienciaRequerida?: string;
-  reclutador?: ReclutadorResumidoResponse;
+  experienciaRequerida?: number;
+  fechaPublicacion?: string;
+  fechaCierre?: string;
+  estado: EstadoVacante;
+  fechaCreacion: string;
+  fechaActualizacion?: string;
+  empresa?: string;
+  totalPostulaciones?: number;
+  esFavorita?: boolean;
 }
 
 // Respuesta detallada de vacante
 export interface VacanteDetalleResponse extends VacanteResumenResponse {
-  descripcion: string;
-  area?: string;
-  tipoContrato?: string;
-  experienciaMinima?: number;
   habilidadesRequeridas?: string;
   requisitosAdicionales?: string;
   beneficios?: string;
   reclutador: ReclutadorResumidoResponse;
-  requierePrueba?: boolean;
 }
 
 // Respuesta resumida de reclutador

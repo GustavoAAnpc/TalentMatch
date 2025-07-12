@@ -24,12 +24,9 @@ public class CreacionPreguntaRequest {
     @NotBlank(message = "El enunciado es obligatorio")
     private String enunciado;
 
-    /**
-     * Tipo de pregunta (OPCION_MULTIPLE, ABIERTA, VERDADERO_FALSO, CODIGO, TEORICA)
-     */
     @NotBlank(message = "El tipo de pregunta es obligatorio")
-    @Pattern(regexp = "^(OPCION_MULTIPLE|ABIERTA|VERDADERO_FALSO|CODIGO|TEORICA)$", 
-            message = "El tipo de pregunta debe ser OPCION_MULTIPLE, ABIERTA, VERDADERO_FALSO, CODIGO o TEORICA")
+    @Pattern(regexp = "^(OPCION_MULTIPLE|DESARROLLO|VERDADERO_FALSO|CODIGO)$", 
+            message = "El tipo de pregunta debe ser OPCION_MULTIPLE, DESARROLLO, VERDADERO_FALSO o CODIGO")
     private String tipoPregunta;
 
     private String opciones;

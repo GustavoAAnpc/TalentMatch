@@ -19,7 +19,6 @@ public class PruebaTecnicaResumenResponse {
     private Long id;
     private Long postulacionId;
     private String titulo;
-    private String descripcion;
     private String nivelDificultad;
     private String tecnologias;
     private Integer tiempoLimiteMinutos;
@@ -30,5 +29,4 @@ public class PruebaTecnicaResumenResponse {
     private Integer puntuacionTotal;
     private Integer totalPreguntas;
     private Integer preguntasRespondidas;
-    private VacanteResumidaResponse vacante;
 }

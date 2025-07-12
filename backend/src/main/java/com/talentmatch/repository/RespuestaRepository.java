@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.data.jpa.repository.Modifying;
 
 import com.talentmatch.model.entity.Candidato;
 import com.talentmatch.model.entity.Pregunta;
@@ -68,13 +67,4 @@ public interface RespuestaRepository extends JpaRepository<Respuesta, Long> {
      */
     @Query("SELECT r FROM Respuesta r WHERE r.pregunta.id = :preguntaId")
     Optional<Respuesta> findByPreguntaId(@Param("preguntaId") Long preguntaId);
-    
-    /**
-     * Elimina respuestas por ID de pregunta.
-     * 
-     * @param preguntaId ID de la pregunta asociada a las respuestas a eliminar
-     */
-    @Modifying
-    @Query("DELETE FROM Respuesta r WHERE r.pregunta.id = :preguntaId")
-    void deleteByPreguntaId(@Param("preguntaId") Long preguntaId);
 }

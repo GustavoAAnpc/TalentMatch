@@ -72,7 +72,7 @@ public class CandidatoController {
      * @return ResponseEntity con el DTO del candidato
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CANDIDATO', 'RECLUTADOR', 'ADMINISTRADOR') and (authentication.principal.id == #id or hasAnyRole('RECLUTADOR', 'ADMINISTRADOR'))")
+    @PreAuthorize("hasAnyRole('CANDIDATO', 'RECLUTADOR', 'ADMINISTRADOR') and (authentication.principal.id == #id or hasRole('ADMINISTRADOR'))")
     public ResponseEntity<CandidatoResponse> obtenerCandidatoPorId(@PathVariable Long id) {
         return ResponseEntity.ok(candidatoService.buscarPorId(id));
     }
@@ -218,53 +218,6 @@ public class CandidatoController {
     @PreAuthorize("hasAnyRole('RECLUTADOR', 'ADMINISTRADOR')")
     public ResponseEntity<List<CandidatoResponse>> listarCandidatos() {
         return ResponseEntity.ok(candidatoService.listarTodos());
-    }
-
-    /**
-     * Busca candidatos con filtros avanzados para reclutadores.
-     * 
-     * @param tituloProfesional Filtro por título profesional (opcional)
-     * @param nombre Filtro por nombre del candidato (opcional)
-     * @param habilidad Filtro por habilidad (opcional)
-     * @param experienciaMinima Filtro por años mínimos de experiencia (opcional)
-     * @param ubicacion Filtro por ubicación (opcional)
-     * @param disponibilidadInmediata Filtro por disponibilidad inmediata (opcional)
-     * @param pagina Número de página (0-based)
-     * @param tamanio Tamaño de la página
-     * @param ordenarPor Campo por el que ordenar los resultados
-     * @param direccion Dirección de ordenamiento (asc o desc)
-     * @return ResponseEntity con la página de candidatos filtrados
-     */
-    @GetMapping("/filtrar")
-    @PreAuthorize("hasAnyRole('RECLUTADOR', 'ADMINISTRADOR')")
-    public ResponseEntity<PaginaResponse<CandidatoResponse>> filtrarCandidatos(
-            @RequestParam(required = false) String tituloProfesional,
-            @RequestParam(required = false) String nombre,
-            @RequestParam(required = false) String habilidad,
-            @RequestParam(required = false) Integer experienciaMinima,
-            @RequestParam(required = false) String ubicacion,
-            @RequestParam(required = false) Boolean disponibilidadInmediata,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "10") int tamanio,
-            @RequestParam(defaultValue = "id") String ordenarPor,
-            @RequestParam(defaultValue = "desc") String direccion) {
-        
-        Sort.Direction dir = direccion.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(pagina, tamanio, Sort.by(dir, ordenarPor));
-        
-        Page<CandidatoResponse> paginaCandidatos = candidatoService.filtrarCandidatos(
-                tituloProfesional, nombre, habilidad, experienciaMinima, ubicacion, disponibilidadInmediata, pageable);
-        
-        PaginaResponse<CandidatoResponse> respuesta = new PaginaResponse<>(
-                paginaCandidatos.getContent(),
-                paginaCandidatos.getNumber(),
-                paginaCandidatos.getSize(),
-                paginaCandidatos.getTotalElements(),
-                paginaCandidatos.getTotalPages(),
-                paginaCandidatos.isFirst(),
-                paginaCandidatos.isLast());
-        
-        return ResponseEntity.ok(respuesta);
     }
 
     /**
@@ -623,26 +576,5 @@ public class CandidatoController {
     public ResponseEntity<String> eliminarFotoPerfil(
             @PathVariable Long id) {
         return ResponseEntity.ok(candidatoService.eliminarFotoPerfil(id));
-    }
-    
-    /**
-     * Actualiza el estado de un candidato.
-     * 
-     * @param id ID del candidato
-     * @param request DTO con el nuevo estado
-     * @return ResponseEntity con el DTO del candidato actualizado
-     */
-    @PutMapping("/{id}/estado")
-    @PreAuthorize("hasAnyRole('RECLUTADOR', 'ADMINISTRADOR')")
-    public ResponseEntity<CandidatoResponse> actualizarEstadoCandidato(
-            @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
-        
-        String nuevoEstado = request.get("estado");
-        if (nuevoEstado == null || nuevoEstado.isEmpty()) {
-            throw new IllegalArgumentException("El estado no puede estar vacío");
-        }
-        
-        return ResponseEntity.ok(candidatoService.actualizarEstado(id, nuevoEstado));
     }
 }

@@ -90,9 +90,6 @@ public class Candidato extends Usuario {
     @Column(name = "autenticacion_oauth2")
     private Boolean autenticacionOAuth2;
 
-    @Column(name = "estado_proceso")
-    private String estadoProceso;
-
     @OneToMany(mappedBy = "candidato", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @BatchSize(size = 20)
@@ -421,9 +418,6 @@ public class Candidato extends Usuario {
         }
         if (documentos == null) {
             documentos = new ArrayList<>();
-        }
-        if (estadoProceso == null) {
-            estadoProceso = "Activo";
         }
     }
 }

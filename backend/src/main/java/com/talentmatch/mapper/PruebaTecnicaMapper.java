@@ -27,7 +27,7 @@ import com.talentmatch.model.entity.Respuesta;
 /**
  * Mapper para convertir entre la entidad PruebaTecnica y sus DTOs.
  */
-@Mapper(componentModel = "spring", uses = {ReclutadorMapper.class, PreguntaMapper.class, VacanteMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", uses = {ReclutadorMapper.class, PreguntaMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public abstract class PruebaTecnicaMapper {
 
     @Autowired
@@ -35,9 +35,6 @@ public abstract class PruebaTecnicaMapper {
 
     @Autowired
     protected PreguntaMapper preguntaMapper;
-    
-    @Autowired
-    protected VacanteMapper vacanteMapper;
 
     /**
      * Convierte un DTO CreacionPruebaTecnicaRequest a una entidad PruebaTecnica.
@@ -134,7 +131,6 @@ public abstract class PruebaTecnicaMapper {
     @Mapping(target = "completada", source = "completada")
     @Mapping(target = "puntuacionTotal", source = "puntuacionTotal")
     @Mapping(target = "preguntas", source = "preguntas", qualifiedByName = "mapPreguntas")
-    @Mapping(target = "vacante", source = "vacante")
     public abstract PruebaTecnicaDetalleResponse toPruebaTecnicaDetalleResponse(PruebaTecnica prueba);
     
     /**
@@ -144,10 +140,8 @@ public abstract class PruebaTecnicaMapper {
      * @return DTO PruebaTecnicaResumenResponse con la información resumida de la prueba técnica
      */
     @Mapping(target = "postulacionId", source = "postulacion.id")
-    @Mapping(target = "descripcion", source = "descripcion")
     @Mapping(target = "totalPreguntas", expression = "java(pruebaTecnica.getPreguntas() != null ? pruebaTecnica.getPreguntas().size() : 0)")
     @Mapping(target = "preguntasRespondidas", expression = "java(pruebaTecnica.getPreguntas() != null ? (int) pruebaTecnica.getPreguntas().stream().filter(p -> p.estaRespondida()).count() : 0)")
-    @Mapping(target = "vacante", source = "vacante")
     public abstract PruebaTecnicaResumenResponse toPruebaTecnicaResumenResponse(PruebaTecnica pruebaTecnica);
 
     /**
@@ -157,7 +151,6 @@ public abstract class PruebaTecnicaMapper {
      * @return DTO PreguntaResponse con la información de la pregunta
      */
     @Mapping(target = "pruebaTecnicaId", source = "pruebaTecnica.id")
-    @Mapping(target = "respuestaCorrecta", source = "respuestaCorrecta")
     @Mapping(target = "respondida", expression = "java(pregunta.estaRespondida())")
     public abstract PreguntaResponse toPreguntaResponse(Pregunta pregunta);
 

@@ -69,7 +69,7 @@ public class Postulacion {
 
     @NotNull(message = "El estado es obligatorio")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 20)
     private EstadoPostulacion estado;
 
     @Size(max = 2000, message = "La carta de presentación no puede exceder los 2000 caracteres")

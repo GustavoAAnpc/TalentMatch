@@ -15,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.talentmatch.dto.request.ActualizacionReclutadorRequest;
 import com.talentmatch.dto.request.RegistroReclutadorRequest;
-import com.talentmatch.dto.response.DashboardReclutadorResponse;
 import com.talentmatch.dto.response.ReclutadorResponse;
 import com.talentmatch.service.ReclutadorService;
 
@@ -121,17 +120,5 @@ public class ReclutadorController {
     @PreAuthorize("hasAnyRole('RECLUTADOR', 'CANDIDATO', 'ADMINISTRADOR')")
     public ResponseEntity<List<ReclutadorResponse>> listarReclutadores() {
         return ResponseEntity.ok(reclutadorService.listarTodos());
-    }
-
-    /**
-     * Obtiene estadísticas para el dashboard del reclutador.
-     * 
-     * @param id ID del reclutador
-     * @return ResponseEntity con las estadísticas del dashboard
-     */
-    @GetMapping("/{id}/dashboard")
-    @PreAuthorize("hasAnyRole('RECLUTADOR', 'ADMINISTRADOR') and (authentication.principal.id == #id or hasRole('ADMINISTRADOR'))")
-    public ResponseEntity<DashboardReclutadorResponse> obtenerEstadisticasDashboard(@PathVariable Long id) {
-        return ResponseEntity.ok(reclutadorService.obtenerEstadisticasDashboard(id));
     }
 } 

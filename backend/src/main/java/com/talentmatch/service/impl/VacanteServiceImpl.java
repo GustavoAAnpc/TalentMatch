@@ -14,10 +14,8 @@ import com.talentmatch.exception.ValidacionException;
 import com.talentmatch.mapper.VacanteMapper;
 import com.talentmatch.model.entity.Reclutador;
 import com.talentmatch.model.entity.Vacante;
-import com.talentmatch.model.entity.PruebaTecnica;
 import com.talentmatch.model.enums.EstadoVacante;
 import com.talentmatch.repository.VacanteRepository;
-import com.talentmatch.repository.PruebaTecnicaRepository;
 import com.talentmatch.service.ReclutadorService;
 import com.talentmatch.service.VacanteService;
 
@@ -35,7 +33,6 @@ public class VacanteServiceImpl implements VacanteService {
     private final VacanteRepository vacanteRepository;
     private final VacanteMapper vacanteMapper;
     private final ReclutadorService reclutadorService;
-    private final PruebaTecnicaRepository pruebaTecnicaRepository;
 
     @Override
     @Transactional
@@ -173,72 +170,5 @@ public class VacanteServiceImpl implements VacanteService {
     public Vacante buscarVacantePorId(Long id) {
         return vacanteRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Vacante no encontrada con ID: " + id));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean tienePruebasTecnicasAsociadas(Long id) {
-        // Verificar que la vacante exista
-        buscarVacantePorId(id);
-        
-        // Verificar si tiene pruebas técnicas asociadas
-        return !pruebaTecnicaRepository.findByVacanteId(id).isEmpty();
-    }
-    
-    @Override
-    @Transactional
-    public VacanteDetalleResponse actualizarRequierePrueba(Long id, Long reclutadorId, Boolean requierePrueba) {
-        // Buscar la vacante
-        Vacante vacante = buscarVacantePorId(id);
-        
-        // Validar que el reclutador sea el propietario
-        if (!vacante.getReclutador().getId().equals(reclutadorId)) {
-            throw new ValidacionException("No tienes permiso para actualizar esta vacante");
-        }
-        
-        // Actualizar el campo requierePrueba
-        vacante.setRequierePrueba(requierePrueba);
-        vacante = vacanteRepository.save(vacante);
-        
-        log.info("Campo requierePrueba actualizado a {} para la vacante con ID: {}", requierePrueba, id);
-        
-        return vacanteMapper.toVacanteDetalleResponse(vacante);
-    }
-    
-    @Override
-    @Transactional
-    public void eliminar(Long id, Long reclutadorId, boolean eliminarPruebaTecnica) {
-        // Buscar la vacante
-        Vacante vacante = buscarVacantePorId(id);
-        
-        // Validar que el reclutador sea el propietario
-        if (!vacante.getReclutador().getId().equals(reclutadorId)) {
-            throw new ValidacionException("No tienes permiso para eliminar esta vacante");
-        }
-        
-        // Verificar si tiene pruebas técnicas asociadas
-        List<PruebaTecnica> pruebasTecnicas = pruebaTecnicaRepository.findByVacanteId(id);
-        
-        // Si hay pruebas técnicas asociadas
-        if (!pruebasTecnicas.isEmpty()) {
-            if (eliminarPruebaTecnica) {
-                // Si se solicita eliminar las pruebas técnicas, eliminarlas
-                for (PruebaTecnica prueba : pruebasTecnicas) {
-                    pruebaTecnicaRepository.delete(prueba);
-                    log.info("Prueba técnica eliminada con ID: {} asociada a la vacante ID: {}", prueba.getId(), id);
-                }
-            } else {
-                // Si no se solicita eliminar las pruebas técnicas, desvincularlas de la vacante
-                for (PruebaTecnica prueba : pruebasTecnicas) {
-                    prueba.setVacante(null);
-                    pruebaTecnicaRepository.save(prueba);
-                    log.info("Prueba técnica desvinculada con ID: {} de la vacante ID: {}", prueba.getId(), id);
-                }
-            }
-        }
-        
-        // Eliminar la vacante
-        vacanteRepository.delete(vacante);
-        log.info("Vacante eliminada con ID: {} por reclutador ID: {}", id, reclutadorId);
     }
 } 

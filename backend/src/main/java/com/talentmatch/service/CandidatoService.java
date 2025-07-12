@@ -161,27 +161,6 @@ public interface CandidatoService {
     Page<CandidatoResponse> buscarPorHabilidad(String habilidad, Pageable pageable);
 
     /**
-     * Busca candidatos con filtros avanzados para reclutadores.
-     * 
-     * @param tituloProfesional Filtro por título profesional (opcional)
-     * @param nombre Filtro por nombre del candidato (opcional)
-     * @param habilidad Filtro por habilidad (opcional)
-     * @param experienciaMinima Filtro por años mínimos de experiencia (opcional)
-     * @param ubicacion Filtro por ubicación (opcional)
-     * @param disponibilidadInmediata Filtro por disponibilidad inmediata (opcional)
-     * @param pageable Configuración de paginación
-     * @return Página de DTOs CandidatoResponse con la información de los candidatos filtrados
-     */
-    Page<CandidatoResponse> filtrarCandidatos(
-            String tituloProfesional, 
-            String nombre,
-            String habilidad, 
-            Integer experienciaMinima, 
-            String ubicacion, 
-            Boolean disponibilidadInmediata, 
-            Pageable pageable);
-
-    /**
      * Busca un candidato por su ID para uso interno.
      * 
      * @param id ID del candidato a buscar
@@ -213,13 +192,4 @@ public interface CandidatoService {
      * @return URL de la foto de perfil por defecto
      */
     String eliminarFotoPerfil(Long id);
-    
-    /**
-     * Actualiza el estado de un candidato.
-     * 
-     * @param id ID del candidato
-     * @param estado Nuevo estado del candidato
-     * @return DTO CandidatoResponse con la información actualizada del candidato
-     */
-    CandidatoResponse actualizarEstado(Long id, String estado);
 }

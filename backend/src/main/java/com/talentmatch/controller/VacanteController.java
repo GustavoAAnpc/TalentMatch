@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -180,52 +179,5 @@ public class VacanteController {
     @PreAuthorize("hasAnyRole('CANDIDATO', 'ADMINISTRADOR') and (authentication.principal.id == #candidatoId or hasRole('ADMINISTRADOR'))")
     public ResponseEntity<List<VacanteResumenResponse>> buscarVacantesRecomendadas(@RequestParam Long candidatoId) {
         return ResponseEntity.ok(vacanteService.buscarVacantesRecomendadas(candidatoId));
-    }
-
-    /**
-     * Verifica si una vacante tiene pruebas técnicas asociadas.
-     * 
-     * @param id ID de la vacante
-     * @return ResponseEntity con true si tiene pruebas técnicas, false en caso contrario
-     */
-    @GetMapping("/{id}/tiene-pruebas")
-    @PreAuthorize("hasAnyRole('RECLUTADOR', 'ADMINISTRADOR')")
-    public ResponseEntity<Boolean> verificarPruebasTecnicasAsociadas(@PathVariable Long id) {
-        return ResponseEntity.ok(vacanteService.tienePruebasTecnicasAsociadas(id));
-    }
-
-    /**
-     * Actualiza el campo requierePrueba de una vacante.
-     * 
-     * @param id ID de la vacante
-     * @param reclutadorId ID del reclutador que actualiza la vacante
-     * @param requierePrueba Nuevo valor para el campo requierePrueba
-     * @return ResponseEntity con el DTO de la vacante actualizada
-     */
-    @PutMapping("/{id}/requiere-prueba")
-    @PreAuthorize("hasAnyRole('RECLUTADOR', 'ADMINISTRADOR') and (authentication.principal.id == #reclutadorId or hasRole('ADMINISTRADOR'))")
-    public ResponseEntity<VacanteDetalleResponse> actualizarRequierePrueba(
-            @PathVariable Long id,
-            @RequestParam Long reclutadorId,
-            @RequestParam Boolean requierePrueba) {
-        return ResponseEntity.ok(vacanteService.actualizarRequierePrueba(id, reclutadorId, requierePrueba));
-    }
-
-    /**
-     * Elimina una vacante.
-     * 
-     * @param id ID de la vacante a eliminar
-     * @param reclutadorId ID del reclutador que elimina la vacante
-     * @param eliminarPruebaTecnica Indica si se deben eliminar también las pruebas técnicas asociadas
-     * @return ResponseEntity sin contenido
-     */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('RECLUTADOR', 'ADMINISTRADOR') and (authentication.principal.id == #reclutadorId or hasRole('ADMINISTRADOR'))")
-    public ResponseEntity<Void> eliminarVacante(
-            @PathVariable Long id,
-            @RequestParam Long reclutadorId,
-            @RequestParam(defaultValue = "false") boolean eliminarPruebaTecnica) {
-        vacanteService.eliminar(id, reclutadorId, eliminarPruebaTecnica);
-        return ResponseEntity.noContent().build();
     }
 } 

@@ -292,7 +292,7 @@ export const candidatoService = {
     try {
       const token = authService.getToken();
       
-      const respuesta = await fetch(`${API_URL}/candidatos/${candidatoId}/experiencia`, {
+      const respuesta = await fetch(`${API_URL}/experiencias-laborales/candidato/${candidatoId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -301,8 +301,7 @@ export const candidatoService = {
       });
 
       if (!respuesta.ok) {
-        console.error(`Error al obtener experiencias. Código: ${respuesta.status}`);
-        return [];
+        throw new Error(`Error al obtener experiencias: ${respuesta.status}`);
       }
 
       return await respuesta.json();
@@ -317,7 +316,7 @@ export const candidatoService = {
     try {
       const token = authService.getToken();
       
-      const respuesta = await fetch(`${API_URL}/candidatos/${candidatoId}/experiencia`, {
+      const respuesta = await fetch(`${API_URL}/experiencias-laborales/candidato/${candidatoId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -342,7 +341,7 @@ export const candidatoService = {
     try {
       const token = authService.getToken();
       
-      const respuesta = await fetch(`${API_URL}/candidatos/${candidatoId}/experiencia/${experienciaId}`, {
+      const respuesta = await fetch(`${API_URL}/experiencias-laborales/candidato/${candidatoId}/${experienciaId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -367,7 +366,7 @@ export const candidatoService = {
     try {
       const token = authService.getToken();
       
-      const respuesta = await fetch(`${API_URL}/candidatos/${candidatoId}/experiencia/${experienciaId}`, {
+      const respuesta = await fetch(`${API_URL}/experiencias-laborales/candidato/${candidatoId}/${experienciaId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -882,126 +881,6 @@ export const candidatoService = {
       return await respuesta.text();
     } catch (error) {
       console.error(`Error en eliminarFotoPerfil(${candidatoId}):`, error);
-      throw error;
-    }
-  },
-  
-  // Filtrar candidatos con criterios avanzados
-  filtrarCandidatos: async (filtros: {
-    tituloProfesional?: string;
-    nombre?: string;
-    habilidad?: string;
-    experienciaMinima?: number;
-    ubicacion?: string;
-    disponibilidadInmediata?: boolean;
-    pagina?: number;
-    tamanio?: number;
-    ordenarPor?: string;
-    direccion?: string;
-  }) => {
-    try {
-      const token = authService.getToken();
-      
-      // Construir los parámetros de consulta
-      const params = new URLSearchParams();
-      
-      if (filtros.tituloProfesional) {
-        params.append('tituloProfesional', filtros.tituloProfesional);
-      }
-      
-      if (filtros.nombre) {
-        params.append('nombre', filtros.nombre);
-      }
-      
-      if (filtros.habilidad) {
-        params.append('habilidad', filtros.habilidad);
-      }
-      
-      if (filtros.experienciaMinima !== undefined) {
-        params.append('experienciaMinima', filtros.experienciaMinima.toString());
-      }
-      
-      if (filtros.ubicacion) {
-        params.append('ubicacion', filtros.ubicacion);
-      }
-      
-      if (filtros.disponibilidadInmediata !== undefined) {
-        params.append('disponibilidadInmediata', filtros.disponibilidadInmediata.toString());
-      }
-      
-      // Parámetros de paginación y ordenamiento
-      params.append('pagina', (filtros.pagina || 0).toString());
-      params.append('tamanio', (filtros.tamanio || 10).toString());
-      params.append('ordenarPor', filtros.ordenarPor || 'id');
-      params.append('direccion', filtros.direccion || 'desc');
-      
-      const respuesta = await fetch(`${API_URL}/candidatos/filtrar?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!respuesta.ok) {
-        const errorData = await respuesta.json();
-        throw new Error(errorData.mensaje || 'Error al filtrar candidatos');
-      }
-
-      return await respuesta.json();
-    } catch (error) {
-      console.error('Error en filtrarCandidatos:', error);
-      throw error;
-    }
-  },
-  
-  // Obtener todos los candidatos
-  obtenerTodosCandidatos: async () => {
-    try {
-      const token = authService.getToken();
-      
-      const respuesta = await fetch(`${API_URL}/candidatos`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!respuesta.ok) {
-        const errorData = await respuesta.json();
-        throw new Error(errorData.mensaje || 'Error al obtener candidatos');
-      }
-
-      return await respuesta.json();
-    } catch (error) {
-      console.error('Error en obtenerTodosCandidatos:', error);
-      throw error;
-    }
-  },
-  
-  // Actualizar estado del candidato
-  actualizarEstadoCandidato: async (candidatoId: number, estado: string) => {
-    try {
-      const token = authService.getToken();
-      
-      const respuesta = await fetch(`${API_URL}/candidatos/${candidatoId}/estado`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ estado })
-      });
-
-      if (!respuesta.ok) {
-        const errorData = await respuesta.json();
-        throw new Error(errorData.mensaje || 'Error al actualizar el estado del candidato');
-      }
-
-      return await respuesta.json();
-    } catch (error) {
-      console.error(`Error en actualizarEstadoCandidato(${candidatoId}):`, error);
       throw error;
     }
   }

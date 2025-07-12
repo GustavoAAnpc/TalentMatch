@@ -120,31 +120,4 @@ public interface VacanteService {
      * @return Entidad Vacante encontrada
      */
     Vacante buscarVacantePorId(Long id);
-
-    /**
-     * Verifica si una vacante tiene pruebas técnicas asociadas.
-     * 
-     * @param id ID de la vacante
-     * @return true si tiene pruebas técnicas, false en caso contrario
-     */
-    boolean tienePruebasTecnicasAsociadas(Long id);
-    
-    /**
-     * Actualiza el campo requierePrueba de una vacante.
-     * 
-     * @param id ID de la vacante
-     * @param reclutadorId ID del reclutador que actualiza la vacante
-     * @param requierePrueba Nuevo valor para el campo requierePrueba
-     * @return DTO VacanteDetalleResponse con la información actualizada
-     */
-    VacanteDetalleResponse actualizarRequierePrueba(Long id, Long reclutadorId, Boolean requierePrueba);
-    
-    /**
-     * Elimina una vacante.
-     * 
-     * @param id ID de la vacante a eliminar
-     * @param reclutadorId ID del reclutador que elimina la vacante
-     * @param eliminarPruebaTecnica Indica si se deben eliminar también las pruebas técnicas asociadas
-     */
-    void eliminar(Long id, Long reclutadorId, boolean eliminarPruebaTecnica);
 }
