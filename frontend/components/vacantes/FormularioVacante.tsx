@@ -289,8 +289,29 @@ export default function FormularioVacante({
       
       toast.success("Contenido generado exitosamente. Revisa y ajusta según necesites.");
     } catch (error) {
-      toast.error("Error al generar el contenido: " + (error instanceof Error ? error.message : "Error desconocido"));
       console.error("Error generando contenido:", error);
+      
+      // Proporcionar mensajes de error más específicos
+      let errorMessage = "Error al generar el contenido";
+      
+      if (error instanceof Error) {
+        const message = error.message;
+        
+        // Detectar tipos específicos de errores
+        if (message.includes("API de Gemini") || message.includes("Gemini")) {
+          errorMessage = "Error en el servicio de IA. Por favor, intenta nuevamente en unos momentos.";
+        } else if (message.includes("network") || message.includes("fetch")) {
+          errorMessage = "Error de conexión. Verifica tu conexión a internet e intenta nuevamente.";
+        } else if (message.includes("401") || message.includes("403")) {
+          errorMessage = "Error de autenticación. Por favor, inicia sesión nuevamente.";
+        } else if (message.includes("500")) {
+          errorMessage = "Error del servidor. Por favor, intenta nuevamente más tarde.";
+        } else {
+          errorMessage = "Error al generar el contenido: " + message;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setGenerandoDescripcion(false);
     }

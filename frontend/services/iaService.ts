@@ -194,8 +194,15 @@ export const iaService = {
       });
 
       if (!respuesta.ok) {
-        const errorData = await respuesta.json();
-        throw new Error(errorData.mensaje || 'Error al generar contenido completo para la vacante');
+        // Intentar obtener el error como JSON primero
+        try {
+          const errorData = await respuesta.json();
+          throw new Error(errorData.mensaje || errorData.message || 'Error al generar contenido completo para la vacante');
+        } catch (jsonError) {
+          // Si no es JSON, obtener como texto
+          const errorText = await respuesta.text();
+          throw new Error(errorText || 'Error al generar contenido completo para la vacante');
+        }
       }
 
       const textoRespuesta = await respuesta.text();
@@ -207,7 +214,12 @@ export const iaService = {
         // Intentar parsear la respuesta como JSON
         const contenidoJSON = JSON.parse(textoRespuesta);
         
-        // Si llegamos aquí, la respuesta es un JSON válido
+        // Verificar si es una respuesta de error
+        if (contenidoJSON.mensaje && contenidoJSON.error) {
+          throw new Error(contenidoJSON.mensaje);
+        }
+        
+        // Si llegamos aquí, la respuesta es un JSON válido con contenido
         console.log("Contenido JSON procesado:", contenidoJSON);
         
         // Extraer contenido del JSON
